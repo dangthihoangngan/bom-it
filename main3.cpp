@@ -25,7 +25,7 @@ public:
         y = startY;
         rect = {x, y, TILE_SIZE, TILE_SIZE};
         placedTime = SDL_GetTicks();
-        explosionEndTime = placedTime + EXPLOSION_TIME + EXPLOSION_DURATION; // Tính toán ngay khi tạo
+        explosionEndTime = placedTime + EXPLOSION_TIME + EXPLOSION_DURATION; 
         exploded = false;
     }
 
