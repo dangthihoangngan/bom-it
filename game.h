@@ -4,6 +4,7 @@
 #include <vector>
 #include <SDL2/SDL.h>
 #include "player.h"
+#include "enemy.h"
 #include "wall.h"
 
 class Game{
@@ -13,7 +14,10 @@ public:
     bool running;
     vector <Wall> walls;
     Player player;
+    int enemyNumber = 3;
+    vector <Enemy> enemies;
 
+    void spawnEnemies();
     void update();
     void generateWalls();
     void handleEvents();

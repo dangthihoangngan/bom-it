@@ -1,9 +1,36 @@
 #include "game.h"
 
+using namespace std;
+
+void Game::spawnEnemies() {
+    enemies.clear();
+    for (int i=0; i< enemyNumber; ++i) {
+        int ex, ey;
+        bool validPosition = false;
+        while (!validPosition) {
+            ex = (rand() % (MAP_WIDTH - 2) + 1) * TILE_SIZE;
+            ey = (rand() % (MAP_HEIGHT - 2) + 1) * TILE_SIZE;
+            validPosition = true;
+            for (const auto& wall : walls) {
+                if (wall.active && wall.x == ex && wall.y == ey) {
+                    validPosition = false;
+                    break;
+                }
+            }
+        }
+        enemies.push_back (Enemy(ex, ey));
+    }
+}
+
 void Game::update() {
     player.updateBombs();
 
-    std::vector<std::vector<Wall>::iterator> wallsToRemove;
+    for (auto& enemy : enemies) {
+        enemy.updateBombs();
+    }
+
+    vector<vector<Wall>::iterator> wallsToRemove;
+    vector<vector<Enemy>::iterator> enemiesToRemove;
 
     for (auto it = player.bombs.begin(); it != player.bombs.end();) {
         if (it->exploded) {
@@ -23,6 +50,14 @@ void Game::update() {
                 }
             }
 
+            for (int i = 0; i < 5; ++i) {
+                for (auto enemyIt = enemies.begin(); enemyIt != enemies.end(); ++enemyIt) {
+                    if (SDL_HasIntersection(&explosionRects[i], &enemyIt->rect)) {
+                        enemiesToRemove.push_back(enemyIt);
+                    }
+                }
+            }
+
             if (SDL_GetTicks() >= it->explosionEndTime) {
                 it = player.bombs.erase(it);
             } else {
@@ -32,8 +67,99 @@ void Game::update() {
             ++it;
         }
     }
+
+     for (auto& enemy : enemies) {
+        for (auto it = enemy.bombs.begin(); it != enemy.bombs.end();) {
+            if (it->exploded) {
+                SDL_Rect explosionRects[5] = {
+                    {it->x, it->y, TILE_SIZE, TILE_SIZE},
+                    {it->x - TILE_SIZE, it->y, TILE_SIZE, TILE_SIZE},
+                    {it->x + TILE_SIZE, it->y, TILE_SIZE, TILE_SIZE},
+                    {it->x, it->y - TILE_SIZE, TILE_SIZE, TILE_SIZE},
+                    {it->x, it->y + TILE_SIZE, TILE_SIZE, TILE_SIZE}
+                };
+
+                for (int i = 0; i < 5; ++i) {
+                    for (auto wallIt = walls.begin(); wallIt != walls.end(); ++wallIt) {
+                        if (wallIt->active && SDL_HasIntersection(&explosionRects[i], &wallIt->rect)) {
+                            wallIt->active = false;
+                            wallsToRemove.push_back(wallIt);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < 5; ++i) {
+                    for (auto enemyIt = enemies.begin(); enemyIt != enemies.end(); ++enemyIt) {
+                        if (SDL_HasIntersection(&explosionRects[i], &enemyIt->rect)) {
+                            enemiesToRemove.push_back(enemyIt);
+                        }
+                    }
+                }
+
+                if (SDL_GetTicks() >= it->explosionEndTime) {
+                    it = enemy.bombs.erase(it);
+                } else {
+                    ++it;
+                }
+            } else {
+                ++it;
+            }
+        }
+    }
+
     for (auto& wallIt : wallsToRemove) {
         walls.erase(wallIt);
+    }
+
+    for (auto& enemyIt : enemiesToRemove) {
+        enemies.erase(enemyIt);
+    }
+
+    for (auto& enemy : enemies) {
+        enemy.move(walls);
+        enemy.placeBomb();
+    }
+
+    for (auto& bomb : player.bombs) {
+        if (!bomb.exploded) continue;
+
+        SDL_Rect explosionRects[5] = {
+            {bomb.x, bomb.y, TILE_SIZE, TILE_SIZE},
+            {bomb.x - TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
+            {bomb.x + TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
+            {bomb.x, bomb.y - TILE_SIZE, TILE_SIZE, TILE_SIZE},
+            {bomb.x, bomb.y + TILE_SIZE, TILE_SIZE, TILE_SIZE}
+        };
+
+        for (int i = 0; i < 5; ++i) {
+            if (SDL_HasIntersection(&player.rect, &explosionRects[i])) {
+                running = false;
+                return;
+            }
+        }
+    }
+
+    for (auto& enemy : enemies) {
+        for (auto& bomb : enemy.bombs) {
+            SDL_Rect explosionRects[5] = {
+                {bomb.x, bomb.y, TILE_SIZE, TILE_SIZE},
+                {bomb.x - TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
+                {bomb.x + TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
+                {bomb.x, bomb.y - TILE_SIZE, TILE_SIZE, TILE_SIZE},
+                {bomb.x, bomb.y + TILE_SIZE, TILE_SIZE, TILE_SIZE}
+            };
+
+            for (int i = 0; i < 5; ++i) {
+                if (SDL_HasIntersection(&player.rect, &explosionRects[i])) {
+                    running = false;
+                    return;
+                }
+            }
+        }
+    }
+
+    if (enemies.empty()) {
+        running = false;
     }
 }
 
@@ -81,11 +207,13 @@ Game::Game(){
     }
     generateWalls();
     player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE);
+    spawnEnemies();
 }
 
 void Game::render () {
     SDL_SetRenderDrawColor(renderer, 128, 128, 128, 225);
     SDL_RenderClear(renderer);
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     for (int i = 1; i < MAP_HEIGHT - 1;++i) {
         for (int j = 1; j < MAP_WIDTH - 1;++j) {
@@ -99,6 +227,11 @@ void Game::render () {
     }
 
     player.render(renderer);
+
+    for (auto &enemy : enemies) {
+        enemy.render(renderer);
+    }
+
     SDL_RenderPresent(renderer);
 }
 
