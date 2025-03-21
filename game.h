@@ -14,7 +14,7 @@ public:
     bool running;
     vector <Wall> walls;
     Player player;
-    int enemyNumber = 3;
+    int enemyNumber = 5;
     vector <Enemy> enemies;
 
     void spawnEnemies();

@@ -25,10 +25,6 @@ void Game::spawnEnemies() {
 void Game::update() {
     player.updateBombs();
 
-    for (auto& enemy : enemies) {
-        enemy.updateBombs();
-    }
-
     vector<vector<Wall>::iterator> wallsToRemove;
     vector<vector<Enemy>::iterator> enemiesToRemove;
 
@@ -68,45 +64,6 @@ void Game::update() {
         }
     }
 
-     for (auto& enemy : enemies) {
-        for (auto it = enemy.bombs.begin(); it != enemy.bombs.end();) {
-            if (it->exploded) {
-                SDL_Rect explosionRects[5] = {
-                    {it->x, it->y, TILE_SIZE, TILE_SIZE},
-                    {it->x - TILE_SIZE, it->y, TILE_SIZE, TILE_SIZE},
-                    {it->x + TILE_SIZE, it->y, TILE_SIZE, TILE_SIZE},
-                    {it->x, it->y - TILE_SIZE, TILE_SIZE, TILE_SIZE},
-                    {it->x, it->y + TILE_SIZE, TILE_SIZE, TILE_SIZE}
-                };
-
-                for (int i = 0; i < 5; ++i) {
-                    for (auto wallIt = walls.begin(); wallIt != walls.end(); ++wallIt) {
-                        if (wallIt->active && SDL_HasIntersection(&explosionRects[i], &wallIt->rect)) {
-                            wallIt->active = false;
-                            wallsToRemove.push_back(wallIt);
-                        }
-                    }
-                }
-
-                for (int i = 0; i < 5; ++i) {
-                    for (auto enemyIt = enemies.begin(); enemyIt != enemies.end(); ++enemyIt) {
-                        if (SDL_HasIntersection(&explosionRects[i], &enemyIt->rect)) {
-                            enemiesToRemove.push_back(enemyIt);
-                        }
-                    }
-                }
-
-                if (SDL_GetTicks() >= it->explosionEndTime) {
-                    it = enemy.bombs.erase(it);
-                } else {
-                    ++it;
-                }
-            } else {
-                ++it;
-            }
-        }
-    }
-
     for (auto& wallIt : wallsToRemove) {
         walls.erase(wallIt);
     }
@@ -117,7 +74,10 @@ void Game::update() {
 
     for (auto& enemy : enemies) {
         enemy.move(walls);
-        enemy.placeBomb();
+        if (SDL_HasIntersection(&player.rect, &enemy.rect)) {
+            running = false;
+            return;
+        }
     }
 
     for (auto& bomb : player.bombs) {
@@ -135,25 +95,6 @@ void Game::update() {
             if (SDL_HasIntersection(&player.rect, &explosionRects[i])) {
                 running = false;
                 return;
-            }
-        }
-    }
-
-    for (auto& enemy : enemies) {
-        for (auto& bomb : enemy.bombs) {
-            SDL_Rect explosionRects[5] = {
-                {bomb.x, bomb.y, TILE_SIZE, TILE_SIZE},
-                {bomb.x - TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
-                {bomb.x + TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
-                {bomb.x, bomb.y - TILE_SIZE, TILE_SIZE, TILE_SIZE},
-                {bomb.x, bomb.y + TILE_SIZE, TILE_SIZE, TILE_SIZE}
-            };
-
-            for (int i = 0; i < 5; ++i) {
-                if (SDL_HasIntersection(&player.rect, &explosionRects[i])) {
-                    running = false;
-                    return;
-                }
             }
         }
     }

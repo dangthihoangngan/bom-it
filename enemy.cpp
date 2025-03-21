@@ -8,7 +8,6 @@ Enemy::Enemy (int startX, int startY) {
     rect = {x, y, TILE_SIZE, TILE_SIZE};
     dirX = 0;
     dirY = 1;
-    lastBombTime = SDL_GetTicks();
 }
 
 void Enemy::move (const vector<Wall>& walls) {
@@ -17,19 +16,19 @@ void Enemy::move (const vector<Wall>& walls) {
     int r = rand() % 50;
     if (r <= 5) {
         this->dirX = 0;
-        this->dirY = -20;
+        this->dirY = -5;
     }
     else if (r >= 6 && r <= 35 ) {
         this->dirX = 0;
-        this->dirY = 20;
+        this->dirY = 5;
     }
-    else if (r >= 36 && r <= 45) {
+    else if (r >= 36 && r <= 44) {
         this->dirY = 0;
-        this->dirX = -20;
+        this->dirX = -5;
     }
-    else if (r >= 46) {
+    else if (r >= 45) {
         this->dirY = 0;
-        this->dirX = 20;
+        this->dirX = 5;
     }
     int newX = x + this->dirX;
     int newY = y + this->dirY;
@@ -49,30 +48,7 @@ void Enemy::move (const vector<Wall>& walls) {
     }
 }
 
-void Enemy::placeBomb() {
-    Uint32 currentTime = SDL_GetTicks();
-    if (--bombDelay > 0) return;
-    bombDelay = 5;
-    if (currentTime - lastBombTime >= 5000) {
-        bombs.push_back(Bomb(x,y));
-        lastBombTime = currentTime;
-        lastBombX = x;
-        lastBombY = y;
-    }
-}
-
-void Enemy::updateBombs() {
-    for (auto &bomb : bombs) {
-        bomb.update();
-    }
-    bombs.erase(std::remove_if(bombs.begin(), bombs.end(), [](Bomb &b) {
-    return b.exploded && SDL_GetTicks() >= b.explosionEndTime;}), bombs.end());
-}
-
 void Enemy::render(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderFillRect(renderer, &rect);
-    for (auto &bomb : bombs) {
-        bomb.render(renderer);
-    }
 }
