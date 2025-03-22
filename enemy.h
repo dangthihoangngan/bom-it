@@ -4,6 +4,7 @@
 #include <vector>
 #include "bom.h"
 #include "wall.h"
+#include "player.h"
 
 using namespace std;
 
@@ -14,7 +15,13 @@ public:
     int moveDelay, bombDelay;
     SDL_Rect rect;
 
+    vector<SDL_Texture*> enemyTextures;
+    int frame = 0;
+    PlayerState state = STANDING;
+    Direction direction = DOWN;
+
     Enemy (int startX, int startY);
+    Enemy(int startX, int startY, vector<SDL_Texture*> textures);
     void move(const vector<Wall>& walls);
     void render(SDL_Renderer* renderer);
 };

@@ -26,10 +26,11 @@ public:
     static void loadBombTextures(SDL_Renderer* renderer);
     static void freeTextures();
 
-    void update();
     void placeBomb();
     void updateBombs();
     void move(int dx, int dy, const vector<Wall>& walls);
+
+    void update();
     void render(SDL_Renderer* renderer);
 };
 

@@ -27,9 +27,9 @@ SDL_Texture* Game::loadTexture(const char* path) {
 }
 
 
-void Game::spawnEnemies() {
+void Game::spawnEnemies(const vector<SDL_Texture*>& enemyTextures) {
     enemies.clear();
-    for (int i=0; i< enemyNumber; ++i) {
+    for (int i = 0; i < enemyNumber; ++i) {
         int ex, ey;
         bool validPosition = false;
         while (!validPosition) {
@@ -43,7 +43,7 @@ void Game::spawnEnemies() {
                 }
             }
         }
-        enemies.push_back (Enemy(ex, ey));
+        enemies.push_back(Enemy(ex, ey, enemyTextures));
     }
 }
 
@@ -143,11 +143,11 @@ void Game::generateWalls() {
             if (tileType != 0) {
                 SDL_Texture* selectedTexture = nullptr;
                 if (tileType == 1) {
-                    selectedTexture = wallTexture1;
+                    selectedTexture = wallTextures[0];
                 } else if (tileType == 2) {
-                    selectedTexture = wallTexture2;
+                    selectedTexture = wallTextures[1];
                 } else {
-                    selectedTexture = wallTexture3;
+                    selectedTexture = wallTextures[2];
                 }
 
                 walls.push_back(Wall(j * TILE_SIZE, i * TILE_SIZE, tileType, selectedTexture));
@@ -210,9 +210,18 @@ Game::Game(){
 
     Player::loadBombTextures(renderer);
 
-    wallTexture1 = loadTexture("assets/wall1.png");
-    wallTexture2 = loadTexture("assets/wall2.png");
-    wallTexture3 = loadTexture("assets/wall3.png");
+    groundTexture = loadTexture("assets/ground.png");
+
+    for (int i = 0; i < 3; i++) {
+        string path = "assets/wall" + to_string(i + 1) + ".png";
+        SDL_Texture* texture = loadTexture(path.c_str());
+        if (!texture) {
+            cerr << "Failed to load " << path << " SDL_Error: " << SDL_GetError() << endl;
+            running = false;
+        } else {
+            wallTextures.push_back(texture);
+        }
+    }
 
     for (int i = 0; i < 12; i++) {
         string path = "assets/character" + to_string(i + 1) + ".png";
@@ -225,8 +234,25 @@ Game::Game(){
         }
     }
 
-    if (!wallTexture1 || !wallTexture2 || !wallTexture3) {
-        cerr << "Could not load wall textures! SDL_Error: " << SDL_GetError() << endl;
+    vector<SDL_Texture*> enemyTextures;
+    for (int i = 0; i < 12; i++) {
+        string path = "assets/enemy" + to_string(i + 1) + ".png";
+        SDL_Texture* texture = loadTexture(path.c_str());
+        if (!texture) {
+            cerr << "Failed to load " << path << " SDL_Error: " << SDL_GetError() << endl;
+            running = false;
+        } else {
+            enemyTextures.push_back(texture);
+        }
+    }
+
+    if (enemyTextures.empty()) {
+        cerr << "No enemy textures loaded! Exiting..." << endl;
+        running = false;
+    }
+
+    if (wallTextures.empty()) {
+        cerr << "No enemy textures loaded! Exiting..." << endl;
         running = false;
     }
 
@@ -237,36 +263,17 @@ Game::Game(){
 
     generateWalls();
     player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE,playerTextures);
-    spawnEnemies();
+    spawnEnemies(enemyTextures);
 }
 
 void Game::render () {
     SDL_SetRenderDrawColor(renderer, 128, 128, 128, 225);
     SDL_RenderClear(renderer);
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    renderGround(renderer, walls, groundTexture);
 
-    for (int i = 0; i < MAP_HEIGHT; ++i) {
-        for (int j = 0; j < MAP_WIDTH; ++j) {
-            SDL_Rect tile = { j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE };
-            SDL_Texture* selectedTexture = nullptr;
-            for (const auto& wall : walls) {
-                if (wall.x == j * TILE_SIZE && wall.y == i * TILE_SIZE) {
-                    if (wall.type == 1) {
-                        selectedTexture = wallTexture1;
-                    } else if (wall.type == 2) {
-                        selectedTexture = wallTexture2;
-                    } else if (wall.type == 3) {
-                        selectedTexture = wallTexture3;
-                    }
-                    break;
-                }
-            }
-            if (selectedTexture) {
-                SDL_RenderCopy(renderer, selectedTexture, NULL, &tile);
-            }
-        }
-    }
+    renderMap(renderer, walls);
+
     player.update();
 
     player.render(renderer);
@@ -288,13 +295,18 @@ void Game::run () {
 }
 Game::~Game() {
     Player::freeTextures();
-    SDL_DestroyTexture(wallTexture1);
-    SDL_DestroyTexture(wallTexture2);
-    SDL_DestroyTexture(wallTexture3);
+    for (SDL_Texture* texture : wallTextures) {
+        SDL_DestroyTexture(texture);
+    }
+    wallTextures.clear();
     for (SDL_Texture* texture : playerTextures) {
         SDL_DestroyTexture(texture);
     }
     playerTextures.clear();
+    for (SDL_Texture* texture : enemyTextures) {
+        SDL_DestroyTexture(texture);
+    }
+    enemyTextures.clear();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

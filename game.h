@@ -16,15 +16,15 @@ public:
     Player player;
     int enemyNumber = 5;
     vector <Enemy> enemies;
-    SDL_Texture* wallTexture1;
-    SDL_Texture* wallTexture2;
-    SDL_Texture* wallTexture3;
+    SDL_Texture* groundTexture;
+    vector<SDL_Texture*> wallTextures;
     vector<SDL_Texture*> playerTextures;
+    vector<SDL_Texture*> enemyTextures;
 
     bool isWall(int i, int j);
     bool init();
     SDL_Texture* loadTexture(const char* path);
-    void spawnEnemies();
+    void spawnEnemies(const vector<SDL_Texture*>& enemyTextures);
     void update();
     void generateWalls();
     void handleEvents();

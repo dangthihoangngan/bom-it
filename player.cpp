@@ -1,4 +1,8 @@
 #include "player.h"
+#include <SDL2/SDL_image.h>
+#include <algorithm>
+#include <iostream>
+using namespace std;
 
 Player::Player () {
     x = 0;
@@ -23,14 +27,6 @@ void Player::loadBombTextures(SDL_Renderer* renderer) {
 
 void Player::freeTextures() {
     Bomb::freeBombTextures();
-}
-
-void Player::update() {
-    if (state == STANDING) {
-        frame = 0;
-    } else if (state == MOVING) {
-        frame = (SDL_GetTicks() / 150) % 3;
-    }
 }
 
 void Player::placeBomb() {
@@ -67,6 +63,13 @@ void Player::move(int dx, int dy, const vector<Wall>& walls) {
     }
 }
 
+void Player::update() {
+    if (state == STANDING) {
+        frame = 0;
+    } else if (state == MOVING) {
+        frame = (SDL_GetTicks() / 150) % 3;
+    }
+}
 
 void Player::render(SDL_Renderer* renderer) {
     int index = direction * 3 + frame;
