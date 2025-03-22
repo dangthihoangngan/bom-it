@@ -8,12 +8,29 @@ Player::Player () {
     dirY = -1;
 }
 
-Player::Player (int startX, int startY) {
+Player::Player(int startX, int startY, vector<SDL_Texture*> textures) {
     x = startX;
     y = startY;
+    playerTextures = textures;
     rect = {x, y, TILE_SIZE, TILE_SIZE};
     dirX = 0;
     dirY = -1;
+}
+
+void Player::loadBombTextures(SDL_Renderer* renderer) {
+    Bomb::loadBombTextures(renderer);
+}
+
+void Player::freeTextures() {
+    Bomb::freeBombTextures();
+}
+
+void Player::update() {
+    if (state == STANDING) {
+        frame = 0;
+    } else if (state == MOVING) {
+        frame = (SDL_GetTicks() / 150) % 3;
+    }
 }
 
 void Player::placeBomb() {
@@ -50,12 +67,15 @@ void Player::move(int dx, int dy, const vector<Wall>& walls) {
     }
 }
 
+
 void Player::render(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderFillRect(renderer, &rect);
-    for (auto &bomb : bombs) {
+    int index = direction * 3 + frame;
+    if (index >= 0 && index < playerTextures.size()) {
+        SDL_Rect destRect = {x, y, TILE_SIZE, TILE_SIZE};
+        SDL_RenderCopy(renderer, playerTextures[index], nullptr, &destRect);
+    }
+    for (auto& bomb : bombs) {
         bomb.render(renderer);
     }
 }
-
 

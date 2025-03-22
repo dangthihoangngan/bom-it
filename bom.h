@@ -14,7 +14,12 @@ public:
     Uint32 explosionEndTime;
     volatile bool exploded;
 
+    static SDL_Texture* bombTexture;
+    static SDL_Texture* explosionTextures[4];
+
     Bomb(int startX, int startY);
+    static void loadBombTextures(SDL_Renderer* renderer);
+    static void freeBombTextures();
     void update();
     void render(SDL_Renderer* renderer);
 };
