@@ -158,6 +158,19 @@ void Game::generateWalls() {
 
 void Game::handleEvents() {
     SDL_Event event;
+
+     while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            running = false;
+        }
+
+        if (inMenu) {
+            if (menu->handleEvent(event)) {
+                inMenu = false;
+            }
+        }
+     }
+
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             running = false;
@@ -193,6 +206,9 @@ void Game::handleEvents() {
 
 Game::Game(){
     running=true;
+    inMenu = true;
+    menu = new Menu(renderer);
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0){
         cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << endl;
         running = false;
@@ -264,28 +280,48 @@ Game::Game(){
     generateWalls();
     player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE,playerTextures);
     spawnEnemies(enemyTextures);
+    menu = new Menu(renderer);
 }
 
 void Game::render () {
-    SDL_SetRenderDrawColor(renderer, 128, 128, 128, 225);
-    SDL_RenderClear(renderer);
+    if (inMenu) {
+        menu->render();
+    } else {
+        SDL_SetRenderDrawColor(renderer, 128, 128, 128, 225);
+        SDL_RenderClear(renderer);
 
-    renderGround(renderer, walls, groundTexture);
+        renderGround(renderer, walls, groundTexture);
+        renderMap(renderer, walls);
 
-    renderMap(renderer, walls);
+        player.update();
+        player.render(renderer);
 
-    player.update();
-
-    player.render(renderer);
-
-    for (auto &enemy : enemies) {
-        enemy.render(renderer);
+        for (auto &enemy : enemies) {
+            enemy.render(renderer);
+        }
     }
 
     SDL_RenderPresent(renderer);
 }
 
 void Game::run () {
+
+    SDL_Event e;
+
+    while (inMenu) {
+        SDL_Event e;
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                running = false;
+                return;
+            }
+            if (menu->handleEvent(e)) {
+                inMenu = false;
+            }
+        }
+        menu->render();
+    }
+
     while (running) {
         handleEvents();
         update();
@@ -309,5 +345,6 @@ Game::~Game() {
     enemyTextures.clear();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    delete menu;
     SDL_Quit();
 }

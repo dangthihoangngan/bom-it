@@ -6,16 +6,23 @@
 #include "player.h"
 #include "enemy.h"
 #include "wall.h"
+#include "menu.h"
 
 class Game{
 public:
     SDL_Window* window;
     SDL_Renderer* renderer;
     bool running;
+
+    Menu* menu;
+    bool inMenu;
+    bool isRunning() const { return running; }
+
     vector <Wall> walls;
     Player player;
     int enemyNumber = 5;
     vector <Enemy> enemies;
+
     SDL_Texture* groundTexture;
     vector<SDL_Texture*> wallTextures;
     vector<SDL_Texture*> playerTextures;
