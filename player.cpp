@@ -48,7 +48,7 @@ void Player::move(int dx, int dy, const vector<Wall>& walls) {
     this->dirY = dy;
 
     SDL_Rect newRect = { newX, newY, TILE_SIZE, TILE_SIZE};
-    for (int i = 0; i < walls.size(); i++) {
+    for (int i = 0; i < (int) walls.size(); i++) {
         if (walls[i].active && SDL_HasIntersection(&newRect, &walls[i].rect)) {
             return;
         }
@@ -73,7 +73,7 @@ void Player::update() {
 
 void Player::render(SDL_Renderer* renderer) {
     int index = direction * 3 + frame;
-    if (index >= 0 && index < playerTextures.size()) {
+    if (index >= 0 && index < (int) playerTextures.size()) {
         SDL_Rect destRect = {x, y, TILE_SIZE, TILE_SIZE};
         SDL_RenderCopy(renderer, playerTextures[index], nullptr, &destRect);
     }

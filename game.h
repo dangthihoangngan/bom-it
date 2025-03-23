@@ -23,6 +23,11 @@ public:
     int enemyNumber = 5;
     vector <Enemy> enemies;
 
+    SDL_Texture* winScreen;
+    SDL_Texture* loseScreen;
+    bool gameOver = false;
+    bool playerWon = false;
+
     SDL_Texture* groundTexture;
     vector<SDL_Texture*> wallTextures;
     vector<SDL_Texture*> playerTextures;

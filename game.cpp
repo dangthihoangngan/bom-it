@@ -48,6 +48,7 @@ void Game::spawnEnemies(const vector<SDL_Texture*>& enemyTextures) {
 }
 
 void Game::update() {
+
     player.updateBombs();
 
     vector<vector<Wall>::iterator> wallsToRemove;
@@ -105,7 +106,8 @@ void Game::update() {
     for (auto& enemy : enemies) {
         enemy.move(walls);
         if (SDL_HasIntersection(&player.rect, &enemy.rect)) {
-            running = false;
+            gameOver = true;
+            playerWon = false;
             return;
         }
     }
@@ -123,14 +125,16 @@ void Game::update() {
 
         for (int i = 0; i < 5; ++i) {
             if (SDL_HasIntersection(&player.rect, &explosionRects[i])) {
-                running = false;
+                gameOver = true;
+                playerWon = false;
                 return;
             }
         }
     }
 
     if (enemies.empty()) {
-        running = false;
+        gameOver = true;
+        playerWon = true;
     }
 }
 
@@ -162,17 +166,11 @@ void Game::handleEvents() {
      while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             running = false;
-        }
-
-        if (inMenu) {
+        } else if (inMenu) {
             if (menu->handleEvent(event)) {
                 inMenu = false;
             }
             continue;
-        }
-
-        if (event.type == SDL_QUIT) {
-            running = false;
         } else if (event.type == SDL_KEYDOWN) {
             switch (event.key.keysym.sym) {
                 case SDLK_UP:
@@ -225,8 +223,24 @@ Game::Game(){
     }
 
     Player::loadBombTextures(renderer);
-
+    winScreen = loadTexture("assets/win.png");
+    loseScreen = loadTexture("assets/lose.png");
     groundTexture = loadTexture("assets/ground.png");
+
+    if (!winScreen) {
+            cerr << "Failed to load " << winScreen << " SDL_Error: " << SDL_GetError() << endl;
+            running = false;
+    }
+
+    if (!loseScreen) {
+            cerr << "Failed to load " << loseScreen << " SDL_Error: " << SDL_GetError() << endl;
+            running = false;
+    }
+
+    if (!groundTexture) {
+            cerr << "Failed to load " << groundTexture << " SDL_Error: " << SDL_GetError() << endl;
+            running = false;
+    }
 
     for (int i = 0; i < 3; i++) {
         string path = "assets/wall" + to_string(i + 1) + ".png";
@@ -262,18 +276,8 @@ Game::Game(){
         }
     }
 
-    if (enemyTextures.empty()) {
+    if (enemyTextures.empty() || wallTextures.empty() || playerTextures.empty()) {
         cerr << "No enemy textures loaded! Exiting..." << endl;
-        running = false;
-    }
-
-    if (wallTextures.empty()) {
-        cerr << "No enemy textures loaded! Exiting..." << endl;
-        running = false;
-    }
-
-    if (playerTextures.empty()) {
-        cerr << "No player textures loaded! Exiting..." << endl;
         running = false;
     }
 
@@ -286,6 +290,12 @@ Game::Game(){
 void Game::render () {
     if (inMenu) {
         menu->render();
+    } else if (gameOver) {
+        if (playerWon) {
+            SDL_RenderCopy(renderer, winScreen, NULL, NULL);
+        } else {
+            SDL_RenderCopy(renderer, loseScreen, NULL, NULL);
+        }
     } else {
         SDL_SetRenderDrawColor(renderer, 128, 128, 128, 225);
         SDL_RenderClear(renderer);
@@ -309,7 +319,6 @@ void Game::run () {
     SDL_Event e;
 
     while (inMenu) {
-        SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 running = false;
@@ -326,6 +335,10 @@ void Game::run () {
         handleEvents();
         update();
         render();
+        if (gameOver) {
+            SDL_Delay(3000);
+            running = false;
+        }
         SDL_Delay(16);
     }
 }
