@@ -13,6 +13,7 @@ class Game{
 public:
 
     Mix_Chunk* bombExplosionSound = nullptr;
+    Mix_Music* backgroundMusic;
 
     SDL_Window* window;
     SDL_Renderer* renderer;
@@ -36,6 +37,9 @@ public:
     vector<SDL_Texture*> wallTextures;
     vector<SDL_Texture*> playerTextures;
     vector<SDL_Texture*> enemyTextures;
+
+    void playMusic();
+    void stopMusic();
 
     bool isWall(int i, int j);
     bool init();

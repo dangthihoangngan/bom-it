@@ -6,6 +6,16 @@
 
 using namespace std;
 
+void Game::playMusic() {
+    if (backgroundMusic) {
+        Mix_PlayMusic(backgroundMusic, -1);
+    }
+}
+
+void Game::stopMusic() {
+    Mix_HaltMusic();
+}
+
 bool Game::isWall(int i, int j) {
     for (const auto& wall : walls) {
         if (wall.x == j * TILE_SIZE && wall.y == i * TILE_SIZE) {
@@ -291,12 +301,17 @@ Game::Game(){
     menu = new Menu(renderer);
 
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-        cerr << "Failed to initialize SDL_mixer: " << Mix_GetError() << std::endl;
+        cerr << "Failed to initialize SDL_mixer: " << Mix_GetError() << endl;
     }
 
     bombExplosionSound = Mix_LoadWAV("assets/bomb_explosion.wav");
     if (!bombExplosionSound) {
-        cerr << "Failed to load explosion sound: " << Mix_GetError() << std::endl;
+        cerr << "Failed to load explosion sound: " << Mix_GetError() << endl;
+    }
+
+    backgroundMusic = Mix_LoadMUS("assets/background.mp3");
+    if (!backgroundMusic) {
+        cout << "Failed to load background music! Mix Error: " << Mix_GetError() << std::endl;
     }
 }
 
@@ -331,6 +346,8 @@ void Game::run () {
 
     SDL_Event e;
 
+    playMusic();
+
     while (inMenu) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
@@ -354,6 +371,8 @@ void Game::run () {
         }
         SDL_Delay(16);
     }
+
+    stopMusic();
 }
 Game::~Game() {
     Player::freeTextures();
@@ -373,6 +392,7 @@ Game::~Game() {
     SDL_DestroyWindow(window);
     delete menu;
     Mix_FreeChunk(bombExplosionSound);
+    Mix_FreeMusic(backgroundMusic);
     Mix_CloseAudio();
     SDL_Quit();
 }
