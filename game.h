@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include "player.h"
 #include "enemy.h"
 #include "wall.h"
@@ -10,6 +11,9 @@
 
 class Game{
 public:
+
+    Mix_Chunk* bombExplosionSound = nullptr;
+
     SDL_Window* window;
     SDL_Renderer* renderer;
     bool running;

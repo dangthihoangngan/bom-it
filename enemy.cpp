@@ -29,25 +29,25 @@ void Enemy::move (const vector<Wall>& walls) {
     int r = rand() % 50;
     if (r <= 5) {
         this->dirX = 0;
-        this->dirY = -5;
+        this->dirY = -10;
         direction = UP;
         state = MOVING;
     }
     else if (r >= 6 && r <= 25 ) {
         this->dirX = 0;
-        this->dirY = 5;
+        this->dirY = 10;
         direction = DOWN;
         state = MOVING;
     }
     else if (r >= 26 && r <= 37) {
         this->dirY = 0;
-        this->dirX = -5;
+        this->dirX = -10;
         direction = LEFT;
         state = MOVING;
     }
     else if (r >= 38) {
         this->dirY = 0;
-        this->dirX = 5;
+        this->dirX = 10;
         direction = RIGHT;
         state = MOVING;
     }

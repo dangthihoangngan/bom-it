@@ -115,6 +115,10 @@ void Game::update() {
     for (auto& bomb : player.bombs) {
         if (!bomb.exploded) continue;
 
+        if (bombExplosionSound) {
+            Mix_PlayChannel(-1, bombExplosionSound, 0);
+        }
+
         SDL_Rect explosionRects[5] = {
             {bomb.x, bomb.y, TILE_SIZE, TILE_SIZE},
             {bomb.x - TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
@@ -285,6 +289,15 @@ Game::Game(){
     player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE,playerTextures);
     spawnEnemies(enemyTextures);
     menu = new Menu(renderer);
+
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        cerr << "Failed to initialize SDL_mixer: " << Mix_GetError() << std::endl;
+    }
+
+    bombExplosionSound = Mix_LoadWAV("assets/bomb_explosion.wav");
+    if (!bombExplosionSound) {
+        cerr << "Failed to load explosion sound: " << Mix_GetError() << std::endl;
+    }
 }
 
 void Game::render () {
@@ -359,5 +372,7 @@ Game::~Game() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     delete menu;
+    Mix_FreeChunk(bombExplosionSound);
+    Mix_CloseAudio();
     SDL_Quit();
 }
