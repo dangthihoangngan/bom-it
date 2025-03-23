@@ -168,10 +168,9 @@ void Game::handleEvents() {
             if (menu->handleEvent(event)) {
                 inMenu = false;
             }
+            continue;
         }
-     }
 
-    while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             running = false;
         } else if (event.type == SDL_KEYDOWN) {
@@ -201,7 +200,8 @@ void Game::handleEvents() {
         }else if (event.type == SDL_KEYUP) {
             player.state = STANDING;
         }
-    }
+     }
+
 }
 
 Game::Game(){

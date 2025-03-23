@@ -33,19 +33,19 @@ void Enemy::move (const vector<Wall>& walls) {
         direction = UP;
         state = MOVING;
     }
-    else if (r >= 6 && r <= 35 ) {
+    else if (r >= 6 && r <= 25 ) {
         this->dirX = 0;
         this->dirY = 5;
         direction = DOWN;
         state = MOVING;
     }
-    else if (r >= 36 && r <= 44) {
+    else if (r >= 26 && r <= 37) {
         this->dirY = 0;
         this->dirX = -5;
         direction = LEFT;
         state = MOVING;
     }
-    else if (r >= 45) {
+    else if (r >= 38) {
         this->dirY = 0;
         this->dirX = 5;
         direction = RIGHT;
