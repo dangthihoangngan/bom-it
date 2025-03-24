@@ -4,7 +4,11 @@
 #include <vector>
 #include "bom.h"
 #include "wall.h"
-#include "player.h"
+
+enum PlayerState { STANDING, PREPARING, MOVING };
+enum Direction { DOWN, LEFT, RIGHT, UP };
+
+class Player;
 
 using namespace std;
 

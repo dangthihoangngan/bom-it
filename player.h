@@ -4,8 +4,8 @@
 #include <vector>
 #include "bom.h"
 #include "wall.h"
-enum PlayerState { STANDING, PREPARING, MOVING };
-enum Direction { DOWN, LEFT, RIGHT, UP };
+#include "enemy.h"
+class Enemy;
 
 using namespace std;
 
@@ -27,7 +27,8 @@ public:
     static void freeTextures();
 
     void placeBomb();
-    void updateBombs();
+    void updateBombs(vector<Wall>& walls, vector<Enemy>& enemies,
+                             bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound);
     void move(int dx, int dy, const vector<Wall>& walls);
 
     void update();

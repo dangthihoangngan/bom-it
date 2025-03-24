@@ -1,6 +1,7 @@
 #include "bom.h"
 #include <SDL2/SDL_image.h>
 #include <iostream>
+#include "enemy.h"
 
 using namespace std;
 
@@ -48,6 +49,60 @@ void Bomb::update() {
     if (!exploded && (timeSincePlaced >= EXPLOSION_TIME)) {
         exploded = true;
         explosionEndTime = currentTime + EXPLOSION_DURATION;
+    }
+}
+
+void Bomb::explode(std::vector<Wall>& walls, std::vector<Enemy>& enemies, SDL_Rect playerRect, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound) {
+    if (!exploded) return;
+
+    if (explosionSound) {
+        Mix_PlayChannel(-1, explosionSound, 0);
+    }
+
+    SDL_Rect explosionRects[5] = {
+        {x, y, TILE_SIZE, TILE_SIZE},
+        {x - TILE_SIZE, y, TILE_SIZE, TILE_SIZE},
+        {x + TILE_SIZE, y, TILE_SIZE, TILE_SIZE},
+        {x, y - TILE_SIZE, TILE_SIZE, TILE_SIZE},
+        {x, y + TILE_SIZE, TILE_SIZE, TILE_SIZE}
+    };
+
+    for (auto it = walls.begin(); it != walls.end();) {
+        bool destroyed = false;
+        for (int i = 0; i < 5; i++) {
+            if (it->active && SDL_HasIntersection(&explosionRects[i], &it->rect)) {
+                destroyed = true;
+                break;
+            }
+        }
+        if (destroyed) {
+            it = walls.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    for (auto it = enemies.begin(); it != enemies.end();) {
+        bool killed = false;
+        for (int i = 0; i < 5; i++) {
+            if (SDL_HasIntersection(&explosionRects[i], &it->rect)) {
+                killed = true;
+                break;
+            }
+        }
+        if (killed) {
+            it = enemies.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    for (int i = 0; i < 5; ++i) {
+        if (SDL_HasIntersection(&playerRect, &explosionRects[i])) {
+            gameOver = true;
+            playerWon = false;
+            return;
+        }
     }
 }
 

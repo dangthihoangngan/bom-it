@@ -74,7 +74,7 @@ void Enemy::move (const vector<Wall>& walls) {
 void Enemy::render(SDL_Renderer* renderer) {
     if (!enemyTextures.empty()) {
         int index = direction * 3 + frame;
-        if (index >= 0 && index < enemyTextures.size()) {
+        if (index >= 0 && index < (int) enemyTextures.size()) {
             SDL_Rect destRect = { x, y, TILE_SIZE, TILE_SIZE };
             SDL_RenderCopy(renderer, enemyTextures[index], nullptr, &destRect);
             return;

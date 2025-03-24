@@ -6,6 +6,13 @@
 
 using namespace std;
 
+void Game::setGameMode(GameMode mode) {
+    gameMode = mode;
+    if (gameMode == TWO_PLAYER) {
+        player2 = Player(((MAP_WIDTH + 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
+    }
+}
+
 void Game::playMusic() {
     if (backgroundMusic) {
         Mix_PlayMusic(backgroundMusic, -1);
@@ -59,59 +66,15 @@ void Game::spawnEnemies(const vector<SDL_Texture*>& enemyTextures) {
 
 void Game::update() {
 
-    player.updateBombs();
+    player.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound);
+
+    if (gameMode == TWO_PLAYER) {
+        player2.update();
+        player2.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound);
+    }
 
     vector<vector<Wall>::iterator> wallsToRemove;
     vector<vector<Enemy>::iterator> enemiesToRemove;
-
-    for (auto it = player.bombs.begin(); it != player.bombs.end();) {
-        if (it->exploded) {
-            SDL_Rect explosionRects[5] = {
-                {it->x, it->y, TILE_SIZE, TILE_SIZE},
-                {it->x - TILE_SIZE, it->y, TILE_SIZE, TILE_SIZE},
-                {it->x + TILE_SIZE, it->y, TILE_SIZE, TILE_SIZE},
-                {it->x, it->y - TILE_SIZE, TILE_SIZE, TILE_SIZE},
-                {it->x, it->y + TILE_SIZE, TILE_SIZE, TILE_SIZE}
-            };
-            auto wallIt = walls.begin();
-            while (wallIt != walls.end()) {
-                bool destroyed = false;
-                for (int i = 0; i < 5; i++) {
-                    if (wallIt->active && SDL_HasIntersection(&explosionRects[i], &wallIt->rect)) {
-                        destroyed = true;
-                        break;
-                    }
-                }
-                if (destroyed) {
-                    wallIt = walls.erase(wallIt);
-                } else {
-                    ++wallIt;
-                }
-            }
-            auto enemyIt = enemies.begin();
-            while (enemyIt != enemies.end()) {
-                bool killed = false;
-                for (int i = 0; i < 5; i++) {
-                    if (SDL_HasIntersection(&explosionRects[i], &enemyIt->rect)) {
-                        killed = true;
-                        break;
-                    }
-                }
-                if (killed) {
-                    enemyIt = enemies.erase(enemyIt);
-                } else {
-                    ++enemyIt;
-                }
-            }
-            if (SDL_GetTicks() >= it->explosionEndTime) {
-                it = player.bombs.erase(it);
-            } else {
-                ++it;
-            }
-        } else {
-            ++it;
-        }
-    }
 
     for (auto& enemy : enemies) {
         enemy.move(walls);
@@ -119,30 +82,6 @@ void Game::update() {
             gameOver = true;
             playerWon = false;
             return;
-        }
-    }
-
-    for (auto& bomb : player.bombs) {
-        if (!bomb.exploded) continue;
-
-        if (bombExplosionSound) {
-            Mix_PlayChannel(-1, bombExplosionSound, 0);
-        }
-
-        SDL_Rect explosionRects[5] = {
-            {bomb.x, bomb.y, TILE_SIZE, TILE_SIZE},
-            {bomb.x - TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
-            {bomb.x + TILE_SIZE, bomb.y, TILE_SIZE, TILE_SIZE},
-            {bomb.x, bomb.y - TILE_SIZE, TILE_SIZE, TILE_SIZE},
-            {bomb.x, bomb.y + TILE_SIZE, TILE_SIZE, TILE_SIZE}
-        };
-
-        for (int i = 0; i < 5; ++i) {
-            if (SDL_HasIntersection(&player.rect, &explosionRects[i])) {
-                gameOver = true;
-                playerWon = false;
-                return;
-            }
         }
     }
 
@@ -177,7 +116,7 @@ void Game::generateWalls() {
 void Game::handleEvents() {
     SDL_Event event;
 
-     while (SDL_PollEvent(&event)) {
+    while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             running = false;
         } else if (inMenu) {
@@ -185,33 +124,107 @@ void Game::handleEvents() {
                 inMenu = false;
             }
             continue;
-        } else if (event.type == SDL_KEYDOWN) {
+        } else if (gameMode == SINGLE_PLAYER) {
+                if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                    case SDLK_UP:
+                        player.move(0, -5, walls);
+                        player.direction = UP;
+                        player.state = MOVING;
+                        break;
+                    case SDLK_DOWN:
+                        player.move(0, 5, walls);
+                        player.direction = DOWN;
+                        player.state = MOVING;
+                        break;
+                    case SDLK_LEFT:
+                        player.move(-5, 0, walls);
+                        player.direction = LEFT;
+                        player.state = MOVING;
+                        break;
+                    case SDLK_RIGHT:
+                        player.move(5, 0, walls);
+                        player.direction = RIGHT;
+                        player.state = MOVING;
+                        break;
+                    case SDLK_SPACE: player.placeBomb(); break;
+                    }
+                }else if (event.type == SDL_KEYUP) {
+                    player.state = STANDING;
+                }
+        } else if (gameMode == TWO_PLAYER) {
+            if (event.type == SDL_KEYDOWN) {
             switch (event.key.keysym.sym) {
                 case SDLK_UP:
-                     player.move(0, -5, walls);
-                     player.direction = UP;
-                     player.state = MOVING;
-                     break;
+                    player.move(0, -5, walls);
+                    player.direction = UP;
+                    player.state = MOVING;
+                    break;
                 case SDLK_DOWN:
-                     player.move(0, 5, walls);
-                     player.direction = DOWN;
-                     player.state = MOVING;
-                     break;
+                    player.move(0, 5, walls);
+                    player.direction = DOWN;
+                    player.state = MOVING;
+                    break;
                 case SDLK_LEFT:
-                     player.move(-5, 0, walls);
-                     player.direction = LEFT;
-                     player.state = MOVING;
-                     break;
+                    player.move(-5, 0, walls);
+                    player.direction = LEFT;
+                    player.state = MOVING;
+                    break;
                 case SDLK_RIGHT:
-                     player.move(5, 0, walls);
-                     player.direction = RIGHT;
-                     player.state = MOVING;
-                     break;
-                case SDLK_SPACE: player.placeBomb(); break;
+                    player.move(5, 0, walls);
+                    player.direction = RIGHT;
+                    player.state = MOVING;
+                    break;
+                case SDLK_RETURN:
+                    player.placeBomb();
+                    break;
+
+                case SDLK_w:
+                    player2.move(0, -5, walls);
+                    player2.direction = UP;
+                    player2.state = MOVING;
+                    break;
+                case SDLK_s:
+                    player2.move(0, 5, walls);
+                    player2.direction = DOWN;
+                    player2.state = MOVING;
+                    break;
+                case SDLK_a:
+                    player2.move(-5, 0, walls);
+                    player2.direction = LEFT;
+                    player2.state = MOVING;
+                    break;
+                case SDLK_d:
+                    player2.move(5, 0, walls);
+                    player2.direction = RIGHT;
+                    player2.state = MOVING;
+                    break;
+                case SDLK_SPACE:
+                    player2.placeBomb();
+                    break;
             }
-        }else if (event.type == SDL_KEYUP) {
-            player.state = STANDING;
+        } else if (event.type == SDL_KEYUP) {
+            if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_DOWN ||
+                event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_RIGHT) {
+                if (!SDL_GetKeyboardState(NULL)[SDL_SCANCODE_UP] &&
+                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_DOWN] &&
+                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LEFT] &&
+                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_RIGHT]) {
+                    player.state = STANDING;
+                }
+            }
+
+            if (event.key.keysym.sym == SDLK_w || event.key.keysym.sym == SDLK_s ||
+                event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_d) {
+                if (!SDL_GetKeyboardState(NULL)[SDL_SCANCODE_W] &&
+                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_S] &&
+                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_A] &&
+                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_D]) {
+                    player2.state = STANDING;
+                }
+            }
         }
+    }
      }
 
 }
@@ -220,6 +233,9 @@ Game::Game(){
     running=true;
     inMenu = true;
     menu = new Menu(renderer);
+    gameOver = false;
+    playerWon = false;
+    gameMode = SINGLE_PLAYER;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0){
         cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << endl;
@@ -237,6 +253,7 @@ Game::Game(){
     }
 
     Player::loadBombTextures(renderer);
+
     winScreen = loadTexture("assets/win.png");
     loseScreen = loadTexture("assets/lose.png");
     groundTexture = loadTexture("assets/ground.png");
@@ -297,6 +314,8 @@ Game::Game(){
 
     generateWalls();
     player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE,playerTextures);
+    player2 = Player(((MAP_WIDTH + 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
+
     spawnEnemies(enemyTextures);
     menu = new Menu(renderer);
 
@@ -333,6 +352,9 @@ void Game::render () {
 
         player.update();
         player.render(renderer);
+        if (gameMode == TWO_PLAYER) {
+            player2.render(renderer);
+        }
 
         for (auto &enemy : enemies) {
             enemy.render(renderer);
@@ -353,6 +375,15 @@ void Game::run () {
             if (e.type == SDL_QUIT) {
                 running = false;
                 return;
+            }
+            if (e.type == SDL_KEYDOWN) {
+                if (e.key.keysym.sym == SDLK_1) {
+                    setGameMode(SINGLE_PLAYER);
+                    inMenu = false;
+                } else if (e.key.keysym.sym == SDLK_2) {
+                    setGameMode(TWO_PLAYER);
+                    inMenu = false;
+                }
             }
             if (menu->handleEvent(e)) {
                 inMenu = false;

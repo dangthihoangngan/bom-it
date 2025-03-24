@@ -33,12 +33,25 @@ void Player::placeBomb() {
     bombs.push_back(Bomb(x,y));
 }
 
-void Player::updateBombs() {
+void Player::updateBombs(vector<Wall>& walls, vector<Enemy>& enemies, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound) {
+    if (walls.empty() && enemies.empty()) return;
     for (auto &bomb : bombs) {
         bomb.update();
     }
-    bombs.erase(std::remove_if(bombs.begin(), bombs.end(), [](Bomb &b) {
-    return b.exploded && SDL_GetTicks() >= b.explosionEndTime;}), bombs.end());
+
+    for (auto it = bombs.begin(); it != bombs.end();) {
+        if (SDL_GetTicks() >= it->explosionEndTime) {
+            it->exploded = true;
+        }
+
+        it->explode(walls, enemies, rect, gameOver, playerWon, explosionSound);
+
+        if (it->exploded && SDL_GetTicks() >= it->explosionEndTime) {
+            it = bombs.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void Player::move(int dx, int dy, const vector<Wall>& walls) {

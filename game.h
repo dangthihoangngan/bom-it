@@ -9,8 +9,13 @@
 #include "wall.h"
 #include "menu.h"
 
+enum GameMode { SINGLE_PLAYER, TWO_PLAYER };
+
 class Game{
 public:
+
+    GameMode gameMode;
+    Player player2;
 
     Mix_Chunk* bombExplosionSound = nullptr;
     Mix_Music* backgroundMusic;
@@ -22,6 +27,8 @@ public:
     Menu* menu;
     bool inMenu;
     bool isRunning() const { return running; }
+
+    void setGameMode(GameMode mode);
 
     vector <Wall> walls;
     Player player;
