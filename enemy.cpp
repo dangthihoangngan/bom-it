@@ -84,8 +84,7 @@ void Enemy::render(SDL_Renderer* renderer) {
 void ShootingEnemy::shoot() {
     if (--bombDelay > 0) return;
     bombDelay = 5;
-    int bulletSpeed = 5;
-    bullets.push_back(Bullet(x, y, dirX * bulletSpeed, dirY * bulletSpeed, bulletTexture));
+    bullets.push_back(Bullet(x, y, dirX, dirY, bulletTexture));
 }
 
 void ShootingEnemy::updateBullets(const std::vector<Wall>& walls) {
@@ -108,7 +107,6 @@ void ShootingEnemy::render(SDL_Renderer* renderer) {
         SDL_Rect destRect = { x, y, TILE_SIZE, TILE_SIZE };
         SDL_RenderCopy(renderer, enemyTextures[index], nullptr, &destRect);
     }
-    cout<<bullets.size();
 
     for (auto& bullet : bullets) {
         bullet.render(renderer);
