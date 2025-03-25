@@ -26,7 +26,7 @@ public:
     static void loadBombTextures(SDL_Renderer* renderer);
     static void freeBombTextures();
     void update();
-    void explode(std::vector<Wall>& walls, std::vector<Enemy>& enemies,
+    void explode(std::vector<Wall>& walls, std::vector<Enemy*>& enemies,
                  SDL_Rect playerRect, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound);
     void render(SDL_Renderer* renderer);
 };

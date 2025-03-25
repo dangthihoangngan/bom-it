@@ -33,7 +33,7 @@ void Player::placeBomb() {
     bombs.push_back(Bomb(x,y));
 }
 
-void Player::updateBombs(vector<Wall>& walls, vector<Enemy>& enemies, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound) {
+void Player::updateBombs(vector<Wall>& walls, vector<Enemy*>& enemies, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound) {
     if (walls.empty() && enemies.empty()) return;
     for (auto &bomb : bombs) {
         bomb.update();

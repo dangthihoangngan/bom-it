@@ -27,7 +27,7 @@ public:
     static void freeTextures();
 
     void placeBomb();
-    void updateBombs(vector<Wall>& walls, vector<Enemy>& enemies,
+    void updateBombs(vector<Wall>& walls, vector<Enemy*>& enemies,
                              bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound);
     void move(int dx, int dy, const vector<Wall>& walls);
 

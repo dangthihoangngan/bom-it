@@ -44,28 +44,37 @@ SDL_Texture* Game::loadTexture(const char* path) {
 }
 
 
-void Game::spawnEnemies(const vector<SDL_Texture*>& enemyTextures) {
+void Game::spawnEnemies() {
     enemies.clear();
-    for (int i = 0; i < enemyNumber; ++i) {
-        int ex, ey;
-        bool validPosition = false;
-        while (!validPosition) {
-            ex = (rand() % (MAP_WIDTH - 2) + 1) * TILE_SIZE;
-            ey = (rand() % (MAP_HEIGHT - 2) + 1) * TILE_SIZE;
-            validPosition = true;
-            for (const auto& wall : walls) {
-                if (wall.active && wall.x == ex && wall.y == ey) {
-                    validPosition = false;
-                    break;
-                }
+
+    std::vector<std::pair<int, int>> validPositions;
+
+    for (int row = 0; row < MAP_HEIGHT; ++row) {
+        for (int col = 0; col < MAP_WIDTH; ++col) {
+            if (mapData[row][col] == 0) {
+                validPositions.push_back({col * TILE_SIZE, row * TILE_SIZE});
             }
         }
-        enemies.push_back(Enemy(ex, ey, enemyTextures));
+    }
+
+    if (validPositions.empty()) return;
+
+    for (int i = 0; i < enemyNumber; ++i) {
+        int index = rand() % validPositions.size();
+        int ex = validPositions[index].first;
+        int ey = validPositions[index].second;
+
+        if (rand() % 3 == 0) {
+            enemies.push_back(new WalkingEnemy(ex, ey, walkingEnemyTextures));
+        } else {
+            enemies.push_back(new ShootingEnemy(ex, ey, shootingEnemyTextures, bulletTexture));
+        }
     }
 }
 
-void Game::update() {
 
+
+void Game::update() {
     player.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound);
 
     if (gameMode == TWO_PLAYER) {
@@ -73,16 +82,39 @@ void Game::update() {
         player2.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound);
     }
 
-    vector<vector<Wall>::iterator> wallsToRemove;
-    vector<vector<Enemy>::iterator> enemiesToRemove;
+    vector<Enemy*> enemiesToRemove;
 
-    for (auto& enemy : enemies) {
-        enemy.move(walls);
-        if (SDL_HasIntersection(&player.rect, &enemy.rect)) {
-            gameOver = true;
-            playerWon = false;
-            return;
+    for (auto* enemy : enemies) {
+        enemy->move(walls);
+
+        if (dynamic_cast<WalkingEnemy*>(enemy)) {
+            if (SDL_HasIntersection(&player.rect, &enemy->rect)) {
+                gameOver = true;
+                playerWon = false;
+                return;
+            }
         }
+
+        ShootingEnemy* shooter = dynamic_cast<ShootingEnemy*>(enemy);
+        if (shooter) {
+            shooter->updateBullets(this->walls);
+            if (rand() % 100 < 2) {
+                shooter->shoot();
+            }
+
+            for (auto& bullet : shooter->bullets) {
+                if (bullet.active && SDL_HasIntersection(&player.rect, &bullet.rect)) {
+                    gameOver = true;
+                    playerWon = false;
+                    return;
+                }
+            }
+        }
+    }
+
+    for (auto* enemy : enemiesToRemove) {
+        delete enemy;
+        enemies.erase(std::remove(enemies.begin(), enemies.end(), enemy), enemies.end());
     }
 
     if (enemies.empty()) {
@@ -230,7 +262,7 @@ void Game::handleEvents() {
 }
 
 Game::Game(){
-    running=true;
+    running = true;
     inMenu = true;
     menu = new Menu(renderer);
     gameOver = false;
@@ -241,36 +273,27 @@ Game::Game(){
         cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << endl;
         running = false;
     }
-    window = SDL_CreateWindow("BOM IT", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if(!window){
+    window = SDL_CreateWindow("BOM IT", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    if (!window) {
         cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << endl;
         running = false;
     }
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if(!renderer) {
-        cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() <<endl;
+    if (!renderer) {
+        cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << endl;
         running = false;
     }
 
     Player::loadBombTextures(renderer);
+    bulletTexture = loadTexture("assets/bullet.png");
 
     winScreen = loadTexture("assets/win.png");
     loseScreen = loadTexture("assets/lose.png");
     groundTexture = loadTexture("assets/ground.png");
 
-    if (!winScreen) {
-            cerr << "Failed to load " << winScreen << " SDL_Error: " << SDL_GetError() << endl;
-            running = false;
-    }
-
-    if (!loseScreen) {
-            cerr << "Failed to load " << loseScreen << " SDL_Error: " << SDL_GetError() << endl;
-            running = false;
-    }
-
-    if (!groundTexture) {
-            cerr << "Failed to load " << groundTexture << " SDL_Error: " << SDL_GetError() << endl;
-            running = false;
+    if (!winScreen || !loseScreen || !groundTexture) {
+        cerr << "Failed to load some UI textures! SDL_Error: " << SDL_GetError() << endl;
+        running = false;
     }
 
     for (int i = 0; i < 3; i++) {
@@ -295,28 +318,44 @@ Game::Game(){
         }
     }
 
-    vector<SDL_Texture*> enemyTextures;
+
+
     for (int i = 0; i < 12; i++) {
-        string path = "assets/enemy" + to_string(i + 1) + ".png";
+        string path = "assets/walking_enemy" + to_string(i + 1) + ".png";
         SDL_Texture* texture = loadTexture(path.c_str());
         if (!texture) {
             cerr << "Failed to load " << path << " SDL_Error: " << SDL_GetError() << endl;
             running = false;
         } else {
-            enemyTextures.push_back(texture);
+            walkingEnemyTextures.push_back(texture);
         }
     }
 
-    if (enemyTextures.empty() || wallTextures.empty() || playerTextures.empty()) {
-        cerr << "No enemy textures loaded! Exiting..." << endl;
+    for (int i = 0; i < 12; i++) {
+        string path = "assets/shooting_enemy" + to_string(i + 1) + ".png";
+        SDL_Texture* texture = loadTexture(path.c_str());
+        if (!texture) {
+            cerr << "Failed to load " << path << " SDL_Error: " << SDL_GetError() << endl;
+            running = false;
+        } else {
+            shootingEnemyTextures.push_back(texture);
+        }
+    }
+    spawnEnemies();
+
+
+    if (walkingEnemyTextures.empty() || shootingEnemyTextures.empty() || wallTextures.empty() || playerTextures.empty()) {
+        cerr << "Failed to load some textures! Exiting..." << endl;
         running = false;
     }
 
     generateWalls();
-    player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE,playerTextures);
+    player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
     player2 = Player(((MAP_WIDTH + 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
 
-    spawnEnemies(enemyTextures);
+
+
+
     menu = new Menu(renderer);
 
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
@@ -333,6 +372,7 @@ Game::Game(){
         cout << "Failed to load background music! Mix Error: " << Mix_GetError() << std::endl;
     }
 }
+
 
 void Game::render () {
     if (inMenu) {
@@ -357,7 +397,7 @@ void Game::render () {
         }
 
         for (auto &enemy : enemies) {
-            enemy.render(renderer);
+            enemy->render(renderer);
         }
     }
 
@@ -410,15 +450,20 @@ Game::~Game() {
     for (SDL_Texture* texture : wallTextures) {
         SDL_DestroyTexture(texture);
     }
+    if (bulletTexture) SDL_DestroyTexture(bulletTexture);
     wallTextures.clear();
     for (SDL_Texture* texture : playerTextures) {
         SDL_DestroyTexture(texture);
     }
     playerTextures.clear();
-    for (SDL_Texture* texture : enemyTextures) {
+    for (SDL_Texture* texture : walkingEnemyTextures) {
         SDL_DestroyTexture(texture);
     }
-    enemyTextures.clear();
+    walkingEnemyTextures.clear();
+    for (SDL_Texture* texture : shootingEnemyTextures) {
+        SDL_DestroyTexture(texture);
+    }
+    shootingEnemyTextures.clear();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     delete menu;
