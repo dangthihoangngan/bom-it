@@ -8,21 +8,19 @@
 #include "enemy.h"
 #include "wall.h"
 #include "menu.h"
+#include "bullet.h"
 
-enum GameMode { SINGLE_PLAYER, TWO_PLAYER };
-
-class Game{
+class Game {
 public:
-
     GameMode gameMode;
     Player player2;
 
     Mix_Chunk* bombExplosionSound = nullptr;
-    Mix_Music* backgroundMusic;
+    Mix_Music* backgroundMusic = nullptr;
 
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    bool running;
+    SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
+    bool running = true;
 
     Menu* menu;
     bool inMenu;
@@ -30,20 +28,24 @@ public:
 
     void setGameMode(GameMode mode);
 
-    vector <Wall> walls;
+    vector<Wall> walls;
     Player player;
     int enemyNumber = 5;
-    vector <Enemy> enemies;
+    vector<Enemy*> enemies;
 
-    SDL_Texture* winScreen;
-    SDL_Texture* loseScreen;
+    SDL_Texture* winScreen = nullptr;
+    SDL_Texture* loseScreen = nullptr;
     bool gameOver = false;
     bool playerWon = false;
 
-    SDL_Texture* groundTexture;
+    SDL_Texture* groundTexture = nullptr;
     vector<SDL_Texture*> wallTextures;
     vector<SDL_Texture*> playerTextures;
-    vector<SDL_Texture*> enemyTextures;
+
+    vector<SDL_Texture*> walkingEnemyTextures;
+    vector<SDL_Texture*> shootingEnemyTextures;
+
+    SDL_Texture* bulletTexture = nullptr;
 
     void playMusic();
     void stopMusic();
@@ -51,15 +53,17 @@ public:
     bool isWall(int i, int j);
     bool init();
     SDL_Texture* loadTexture(const char* path);
-    void spawnEnemies(const vector<SDL_Texture*>& enemyTextures);
+
+    void spawnEnemies();
+    void clearEnemies();
+
     void update();
     void generateWalls();
     void handleEvents();
     Game();
-    void render ();
-    void run ();
+    void render();
+    void run();
     ~Game();
 };
-
 
 #endif

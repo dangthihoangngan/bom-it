@@ -93,7 +93,6 @@ void Bomb::explode(std::vector<Wall>& walls, std::vector<Enemy*>& enemies, SDL_R
         if (killed) {
             delete *it;
             it = enemies.erase(it);
-            it = enemies.erase(it);
         } else {
             ++it;
         }

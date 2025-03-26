@@ -64,7 +64,7 @@ void Game::spawnEnemies() {
         int ex = validPositions[index].first;
         int ey = validPositions[index].second;
 
-        if (rand() % 3 == 0) {
+        if (rand() % 3 != 0) {
             enemies.push_back(new WalkingEnemy(ex, ey, walkingEnemyTextures));
         } else {
             enemies.push_back(new ShootingEnemy(ex, ey, shootingEnemyTextures, bulletTexture));
@@ -81,8 +81,6 @@ void Game::update() {
         player2.update();
         player2.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound);
     }
-
-    vector<Enemy*> enemiesToRemove;
 
     for (auto* enemy : enemies) {
         enemy->move(walls);
@@ -110,11 +108,6 @@ void Game::update() {
                 }
             }
         }
-    }
-
-    for (auto* enemy : enemiesToRemove) {
-        delete enemy;
-        enemies.erase(std::remove(enemies.begin(), enemies.end(), enemy), enemies.end());
     }
 
     if (enemies.empty()) {
@@ -416,17 +409,10 @@ void Game::run () {
                 running = false;
                 return;
             }
-            if (e.type == SDL_KEYDOWN) {
-                if (e.key.keysym.sym == SDLK_1) {
-                    setGameMode(SINGLE_PLAYER);
-                    inMenu = false;
-                } else if (e.key.keysym.sym == SDLK_2) {
-                    setGameMode(TWO_PLAYER);
-                    inMenu = false;
-                }
-            }
+
             if (menu->handleEvent(e)) {
                 inMenu = false;
+                setGameMode(menu->selectedGameMode);
             }
         }
         menu->render();
