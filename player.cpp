@@ -7,7 +7,7 @@ using namespace std;
 Player::Player () {
     x = 0;
     y = 0;
-    rect = {x, y, TILE_SIZE, TILE_SIZE};
+    rect = {x, y, TILE_SIZE - 5, TILE_SIZE - 5};
     dirX = 0;
     dirY = -1;
 }
@@ -16,7 +16,7 @@ Player::Player(int startX, int startY, vector<SDL_Texture*> textures) {
     x = startX;
     y = startY;
     playerTextures = textures;
-    rect = {x, y, TILE_SIZE, TILE_SIZE};
+    rect = {x, y, TILE_SIZE - 5, TILE_SIZE - 5};
     dirX = 0;
     dirY = -1;
 }

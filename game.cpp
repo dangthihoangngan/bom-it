@@ -9,7 +9,7 @@ using namespace std;
 void Game::setGameMode(GameMode mode) {
     gameMode = mode;
     if (gameMode == TWO_PLAYER) {
-        player2 = Player(((MAP_WIDTH + 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
+        player2 = Player(((MAP_WIDTH + 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, player2Textures);
     }
 }
 
@@ -311,6 +311,17 @@ Game::Game(){
         }
     }
 
+    for (int i = 0; i < 12; i++) {
+        string path = "assets/character2" + to_string(i + 1) + ".png";
+        SDL_Texture* texture = loadTexture(path.c_str());
+        if (!texture) {
+            cerr << "Failed to load " << path << " SDL_Error: " << SDL_GetError() << endl;
+            running = false;
+        } else {
+            player2Textures.push_back(texture);
+        }
+    }
+
 
 
     for (int i = 0; i < 12; i++) {
@@ -344,7 +355,7 @@ Game::Game(){
 
     generateWalls();
     player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
-    player2 = Player(((MAP_WIDTH + 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
+    player2 = Player(((MAP_WIDTH + 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, player2Textures);
 
 
 

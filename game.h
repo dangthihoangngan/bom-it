@@ -41,6 +41,7 @@ public:
     SDL_Texture* groundTexture = nullptr;
     vector<SDL_Texture*> wallTextures;
     vector<SDL_Texture*> playerTextures;
+    vector<SDL_Texture*> player2Textures;
 
     vector<SDL_Texture*> walkingEnemyTextures;
     vector<SDL_Texture*> shootingEnemyTextures;
