@@ -53,7 +53,9 @@ void Bomb::update() {
 }
 
 void Bomb::explode(std::vector<Wall>& walls, std::vector<Enemy*>& enemies, SDL_Rect playerRect, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound) {
-    if (!exploded) return;
+    if (!exploded){
+        return;
+    }
 
     if (explosionSound) {
         Mix_PlayChannel(-1, explosionSound, 0);

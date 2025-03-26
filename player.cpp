@@ -33,6 +33,10 @@ void Player::placeBomb() {
     bombs.push_back(Bomb(x,y));
 }
 
+const std::vector<Bomb>& Player::getBombs() const {
+    return bombs;
+}
+
 void Player::updateBombs(vector<Wall>& walls, vector<Enemy*>& enemies, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound) {
     if (walls.empty() && enemies.empty()) return;
     for (auto &bomb : bombs) {
@@ -64,6 +68,14 @@ void Player::move(int dx, int dy, const vector<Wall>& walls) {
     for (int i = 0; i < (int) walls.size(); i++) {
         if (walls[i].active && SDL_HasIntersection(&newRect, &walls[i].rect)) {
             return;
+        }
+    }
+
+    for (const auto& bomb : bombs) {
+        if (SDL_HasIntersection(&newRect, &bomb.rect)) {
+            if (SDL_GetTicks() - bomb.placedTime > 1000) {
+                return;
+            }
         }
     }
 

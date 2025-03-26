@@ -23,7 +23,7 @@ Enemy::Enemy(int startX, int startY, vector<SDL_Texture*> textures) {
     direction = DOWN;
 }
 
-void Enemy::move(const vector<Wall>& walls) {
+void Enemy::move(const vector<Wall>& walls,const std::vector<Bomb>& bombs) {
     if (--moveDelay > 0) return;
     moveDelay = 15;
 
@@ -54,6 +54,14 @@ void Enemy::move(const vector<Wall>& walls) {
     for (const auto& wall : walls) {
         if (wall.active && SDL_HasIntersection(&newRect, &wall.rect)) {
             return;
+        }
+    }
+
+    for (const auto& bomb : bombs) {
+        if (SDL_HasIntersection(&newRect, &bomb.rect)) {
+            if (SDL_GetTicks() - bomb.placedTime > 1000) {
+                return;
+            }
         }
     }
 

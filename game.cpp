@@ -83,7 +83,11 @@ void Game::update() {
     }
 
     for (auto* enemy : enemies) {
-        enemy->move(walls);
+        enemy->move(walls,player.getBombs());
+
+        if (gameMode == TWO_PLAYER) {
+            enemy->move(walls,player2.getBombs());
+        }
 
         if (dynamic_cast<WalkingEnemy*>(enemy)) {
             if (SDL_HasIntersection(&player.rect, &enemy->rect)) {

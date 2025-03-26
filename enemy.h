@@ -27,7 +27,7 @@ public:
 
     Enemy(int startX, int startY);
     Enemy(int startX, int startY, vector<SDL_Texture*> textures);
-    virtual void move(const vector<Wall>& walls);
+    virtual void move(const vector<Wall>& walls,const std::vector<Bomb>& bombs);
     virtual void render(SDL_Renderer* renderer);
     virtual ~Enemy() {}
 };
