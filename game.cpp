@@ -43,6 +43,16 @@ SDL_Texture* Game::loadTexture(const char* path) {
     return texture;
 }
 
+void Game::renderText(SDL_Renderer* renderer, const std::string& text, int x, int y, SDL_Color color) {
+    SDL_Surface* surface = TTF_RenderText_Solid(font, text.c_str(), color);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_Rect destRect = {x, y, surface->w, surface->h};
+    SDL_RenderCopy(renderer, texture, NULL, &destRect);
+
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+}
 
 void Game::spawnEnemies() {
     enemies.clear();
@@ -71,8 +81,6 @@ void Game::spawnEnemies() {
         }
     }
 }
-
-
 
 void Game::update() {
     if (player.alive) {
@@ -133,19 +141,6 @@ void Game::update() {
     if (enemies.empty()) {
         gameOver = true;
         playerWon = true;
-    }
-
-    if (gameOver && gameMode == TWO_PLAYER) {
-        std::cout << "Game Over!\n";
-        std::cout << "Player 1 kill count: " << player.killCount << "\n";
-        std::cout << "Player 2 kill count: " << player2.killCount << "\n";
-        if (player.killCount > player2.killCount) {
-            std::cout << "Player 1 Wins!\n";
-        } else if (player.killCount < player2.killCount) {
-            std::cout << "Player 2 Wins!\n";
-        } else {
-            std::cout << "It's a Tie!\n";
-        }
     }
 }
 
@@ -313,6 +308,9 @@ Game::Game(){
     Player::loadBombTextures(renderer);
     bulletTexture = loadTexture("assets/bullet.png");
 
+    screen = loadTexture("assets/screen.png");
+    screen1 = loadTexture("assets/screen1.png");
+    screen2 = loadTexture("assets/screen2.png");
     winScreen = loadTexture("assets/win.png");
     loseScreen = loadTexture("assets/lose.png");
     groundTexture = loadTexture("assets/ground.png");
@@ -408,17 +406,37 @@ Game::Game(){
     if (!backgroundMusic) {
         cout << "Failed to load background music! Mix Error: " << Mix_GetError() << std::endl;
     }
-}
 
+    if (TTF_Init() == -1) {
+        SDL_Log("Không thể khởi tạo SDL_ttf! Lỗi: %s", TTF_GetError());
+        running = false;
+    }
+
+    font = TTF_OpenFont("assets/arial.ttf", 24);
+
+    if (!font) {
+        cerr << "font could not initialize! SDL_Error: " << TTF_GetError() << endl;
+    }
+}
 
 void Game::render () {
     if (inMenu) {
         menu->render();
     } else if (gameOver) {
-        if (playerWon) {
-            SDL_RenderCopy(renderer, winScreen, NULL, NULL);
+        if (gameMode == TWO_PLAYER){
+            if (player.killCount > player2.killCount) {
+                SDL_RenderCopy(renderer, screen1, NULL, NULL);
+            } else if (player.killCount < player2.killCount) {
+                SDL_RenderCopy(renderer, screen2, NULL, NULL);
+            } else {
+                SDL_RenderCopy(renderer, screen, NULL, NULL);
+            }
         } else {
-            SDL_RenderCopy(renderer, loseScreen, NULL, NULL);
+            if (playerWon) {
+                SDL_RenderCopy(renderer, winScreen, NULL, NULL);
+            } else {
+                SDL_RenderCopy(renderer, loseScreen, NULL, NULL);
+            }
         }
     } else {
         SDL_SetRenderDrawColor(renderer, 128, 128, 128, 225);
@@ -440,6 +458,12 @@ void Game::render () {
         for (auto &enemy : enemies) {
             enemy->render(renderer);
         }
+    }
+
+    if (gameMode == TWO_PLAYER) {
+        SDL_Color white = {255, 255, 255};
+        renderText(renderer, "Player 1 Kills: " + std::to_string(player.killCount), 50, 10, white);
+        renderText(renderer, "Player 2 Kills: " + std::to_string(player2.killCount), 50, 40, white);
     }
 
     SDL_RenderPresent(renderer);
@@ -479,6 +503,7 @@ void Game::run () {
 
     stopMusic();
 }
+
 Game::~Game() {
     Player::freeTextures();
     for (SDL_Texture* texture : wallTextures) {
@@ -503,6 +528,7 @@ Game::~Game() {
     delete menu;
     Mix_FreeChunk(bombExplosionSound);
     Mix_FreeMusic(backgroundMusic);
+    TTF_CloseFont(font);
     Mix_CloseAudio();
     SDL_Quit();
 }

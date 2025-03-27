@@ -4,6 +4,7 @@
 #include <vector>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include "player.h"
 #include "enemy.h"
 #include "wall.h"
@@ -19,6 +20,8 @@ public:
     Mix_Chunk* bombExplosionSound = nullptr;
     Mix_Music* backgroundMusic = nullptr;
 
+    TTF_Font* font;
+
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     bool running = true;
@@ -33,6 +36,9 @@ public:
     int enemyNumber = 5;
     vector<Enemy*> enemies;
 
+    SDL_Texture* screen = nullptr;
+    SDL_Texture* screen1 = nullptr;
+    SDL_Texture* screen2 = nullptr;
     SDL_Texture* winScreen = nullptr;
     SDL_Texture* loseScreen = nullptr;
     bool gameOver = false;
@@ -54,6 +60,7 @@ public:
     bool isWall(int i, int j);
     bool init();
     SDL_Texture* loadTexture(const char* path);
+    void renderText(SDL_Renderer* renderer, const std::string& text, int x, int y, SDL_Color color);
 
     void spawnEnemies();
     void clearEnemies();
