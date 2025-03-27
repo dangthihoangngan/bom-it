@@ -5,11 +5,11 @@
 #include "bom.h"
 #include "wall.h"
 #include "bullet.h"
-
-enum PlayerState { STANDING, PREPARING, MOVING };
-enum Direction { DOWN, LEFT, RIGHT, UP };
+#include "constants.h"
 
 class Player;
+class Wall;
+class Bomb;
 
 using namespace std;
 

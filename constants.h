@@ -14,5 +14,8 @@ const int SPRITE_HEIGHT = 29;
 const int SPRITE_COLUMNS = 3;
 const int SPRITE_ROWS = 4;
 
+enum PlayerState { STANDING, PREPARING, MOVING };
+enum Direction { DOWN, LEFT, RIGHT, UP };
+
 #endif
 

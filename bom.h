@@ -8,8 +8,10 @@
 #include "constants.h"
 #include "wall.h"
 #include <SDL2/SDL_mixer.h>
+#include "player.h"
 
 class Enemy;
+class Player;
 
 class Bomb {
 public:
@@ -27,7 +29,7 @@ public:
     static void freeBombTextures();
     void update();
     void explode(std::vector<Wall>& walls, std::vector<Enemy*>& enemies,
-                 SDL_Rect playerRect, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound);
+                   Player& player, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound, Player* player2 = nullptr);
     void render(SDL_Renderer* renderer);
 };
 

@@ -52,7 +52,8 @@ void Bomb::update() {
     }
 }
 
-void Bomb::explode(std::vector<Wall>& walls, std::vector<Enemy*>& enemies, SDL_Rect playerRect, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound) {
+void Bomb::explode(std::vector<Wall>& walls, std::vector<Enemy*>& enemies,
+                   Player& player, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound, Player* player2) {
     if (!exploded){
         return;
     }
@@ -89,6 +90,7 @@ void Bomb::explode(std::vector<Wall>& walls, std::vector<Enemy*>& enemies, SDL_R
         for (int i = 0; i < 5; i++) {
             if (SDL_HasIntersection(&explosionRects[i], &(*it)->rect)) {
                 killed = true;
+                player.killCount++;
                 break;
             }
         }
@@ -100,12 +102,23 @@ void Bomb::explode(std::vector<Wall>& walls, std::vector<Enemy*>& enemies, SDL_R
         }
     }
 
-    for (int i = 0; i < 5; ++i) {
-        if (SDL_HasIntersection(&playerRect, &explosionRects[i])) {
-            gameOver = true;
-            playerWon = false;
-            return;
+    bool player1Hit = false;
+    bool player2Hit = false;
+
+    for (int i = 0; i < 5; i++) {
+        if (SDL_HasIntersection(&player.rect, &explosionRects[i])) {
+            player.alive = false;
+            player1Hit = true;
         }
+        if (player2 && SDL_HasIntersection(&player2->rect, &explosionRects[i])) {
+            player2->alive = false;
+            player2Hit = true;
+        }
+    }
+
+    if (player1Hit && (!player2 || player2Hit)) {
+        gameOver = true;
+        playerWon = false;
     }
 }
 

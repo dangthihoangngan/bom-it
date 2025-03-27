@@ -2,6 +2,7 @@
 #include <SDL2/SDL_image.h>
 #include <algorithm>
 #include <iostream>
+#include "bom.h"
 using namespace std;
 
 Player::Player () {
@@ -37,7 +38,7 @@ const std::vector<Bomb>& Player::getBombs() const {
     return bombs;
 }
 
-void Player::updateBombs(vector<Wall>& walls, vector<Enemy*>& enemies, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound) {
+void Player::updateBombs(vector<Wall>& walls, vector<Enemy*>& enemies, bool& gameOver, bool& playerWon, Mix_Chunk* explosionSound,Player* player2) {
     if (walls.empty() && enemies.empty()) return;
     for (auto &bomb : bombs) {
         bomb.update();
@@ -48,7 +49,7 @@ void Player::updateBombs(vector<Wall>& walls, vector<Enemy*>& enemies, bool& gam
             it->exploded = true;
         }
 
-        it->explode(walls, enemies, rect, gameOver, playerWon, explosionSound);
+        it->explode(walls, enemies, *this, gameOver, playerWon, explosionSound, player2);
 
         if (it->exploded && SDL_GetTicks() >= it->explosionEndTime) {
             it = bombs.erase(it);

@@ -13,6 +13,7 @@
 class Game {
 public:
     GameMode gameMode;
+    Player player;
     Player player2;
 
     Mix_Chunk* bombExplosionSound = nullptr;
@@ -29,7 +30,6 @@ public:
     void setGameMode(GameMode mode);
 
     vector<Wall> walls;
-    Player player;
     int enemyNumber = 5;
     vector<Enemy*> enemies;
 

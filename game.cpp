@@ -75,11 +75,13 @@ void Game::spawnEnemies() {
 
 
 void Game::update() {
-    player.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound);
+    if (player.alive) {
+        player.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound, (gameMode == TWO_PLAYER) ? &player2 : nullptr);
+    }
 
-    if (gameMode == TWO_PLAYER) {
+    if (gameMode == TWO_PLAYER && player2.alive) {
         player2.update();
-        player2.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound);
+        player2.updateBombs(walls, enemies, gameOver, playerWon, bombExplosionSound, &player);
     }
 
     for (auto* enemy : enemies) {
@@ -90,10 +92,11 @@ void Game::update() {
         }
 
         if (dynamic_cast<WalkingEnemy*>(enemy)) {
-            if (SDL_HasIntersection(&player.rect, &enemy->rect)) {
-                gameOver = true;
-                playerWon = false;
-                return;
+            if (player.alive && SDL_HasIntersection(&player.rect, &enemy->rect)) {
+                player.alive = false;
+            }
+            if (gameMode == TWO_PLAYER && player2.alive && SDL_HasIntersection(&player2.rect, &enemy->rect)) {
+                player2.alive = false;
             }
         }
 
@@ -105,18 +108,44 @@ void Game::update() {
             }
 
             for (auto& bullet : shooter->bullets) {
-                if (bullet.active && SDL_HasIntersection(&player.rect, &bullet.rect)) {
-                    gameOver = true;
-                    playerWon = false;
-                    return;
+                if (bullet.active && player.alive && SDL_HasIntersection(&player.rect, &bullet.rect)) {
+                    player.alive = false;
+                }
+                if (gameMode == TWO_PLAYER && bullet.active && player2.alive && SDL_HasIntersection(&player2.rect, &bullet.rect)) {
+                    player2.alive = false;
                 }
             }
+        }
+    }
+
+    if (gameMode == TWO_PLAYER) {
+        if (!player.alive && !player2.alive) {
+            gameOver = true;
+            playerWon = false;
+        }
+    } else {
+        if (!player.alive) {
+            gameOver = true;
+            playerWon = false;
         }
     }
 
     if (enemies.empty()) {
         gameOver = true;
         playerWon = true;
+    }
+
+    if (gameOver && gameMode == TWO_PLAYER) {
+        std::cout << "Game Over!\n";
+        std::cout << "Player 1 kill count: " << player.killCount << "\n";
+        std::cout << "Player 2 kill count: " << player2.killCount << "\n";
+        if (player.killCount > player2.killCount) {
+            std::cout << "Player 1 Wins!\n";
+        } else if (player.killCount < player2.killCount) {
+            std::cout << "Player 2 Wins!\n";
+        } else {
+            std::cout << "It's a Tie!\n";
+        }
     }
 }
 
@@ -398,9 +427,13 @@ void Game::render () {
         renderGround(renderer, walls, groundTexture);
         renderMap(renderer, walls);
 
-        player.update();
-        player.render(renderer);
-        if (gameMode == TWO_PLAYER) {
+        if (player.alive) {
+            player.update();
+            player.render(renderer);
+        }
+
+        if (gameMode == TWO_PLAYER && player2.alive) {
+            player2.update();
             player2.render(renderer);
         }
 
