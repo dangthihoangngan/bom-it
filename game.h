@@ -39,6 +39,7 @@ public:
     SDL_Texture* screen = nullptr;
     SDL_Texture* screen1 = nullptr;
     SDL_Texture* screen2 = nullptr;
+    SDL_Texture* screen3 = nullptr;
     SDL_Texture* winScreen = nullptr;
     SDL_Texture* loseScreen = nullptr;
     bool gameOver = false;
@@ -53,6 +54,9 @@ public:
     vector<SDL_Texture*> shootingEnemyTextures;
 
     SDL_Texture* bulletTexture = nullptr;
+
+    SDL_Rect menuButtonRect;
+    SDL_Rect replayButtonRect;
 
     void playMusic();
     void stopMusic();
@@ -71,6 +75,7 @@ public:
     Game();
     void render();
     void run();
+    void resetGame();
     ~Game();
 };
 

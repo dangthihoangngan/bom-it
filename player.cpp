@@ -107,4 +107,3 @@ void Player::render(SDL_Renderer* renderer) {
         bomb.render(renderer);
     }
 }
-

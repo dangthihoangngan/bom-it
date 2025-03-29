@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-enum GameMode { SINGLE_PLAYER, TWO_PLAYER };
+enum GameMode { NONE, SINGLE_PLAYER, TWO_PLAYER };
 
 enum MenuState {
     MAIN_MENU,
@@ -22,7 +22,6 @@ public:
     bool handleEvent(SDL_Event& e);
     MenuState getState() const { return state; }
 
-private:
     SDL_Renderer* renderer;
     MenuState state;
 
@@ -33,6 +32,8 @@ private:
     SDL_Texture* howToPlayButton;
     SDL_Texture* howToPlayImage;
     SDL_Texture* backButton;
+    SDL_Texture* replayButton;
+    SDL_Texture* menuButton;
 
     SDL_Rect singlePlayerRect;
     SDL_Rect twoPlayerRect;

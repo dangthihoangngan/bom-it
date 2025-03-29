@@ -74,7 +74,7 @@ void Game::spawnEnemies() {
         int ex = validPositions[index].first;
         int ey = validPositions[index].second;
 
-        if (rand() % 3 != 0) {
+        if (rand() % 2 != 0) {
             enemies.push_back(new WalkingEnemy(ex, ey, walkingEnemyTextures));
         } else {
             enemies.push_back(new ShootingEnemy(ex, ey, shootingEnemyTextures, bulletTexture));
@@ -170,6 +170,28 @@ void Game::handleEvents() {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
+        if (gameOver && event.type == SDL_MOUSEBUTTONDOWN) {
+            int x = event.button.x;
+            int y = event.button.y;
+
+            if (x >= menuButtonRect.x && x <= menuButtonRect.x + menuButtonRect.w &&
+                y >= menuButtonRect.y && y <= menuButtonRect.y + menuButtonRect.h) {
+                inMenu = true;
+                gameOver = false;
+                gameMode = NONE;
+                menu->selectedGameMode = NONE;
+                menu->state = MAIN_MENU;
+                resetGame();
+                return;
+            }
+
+            if (x >= replayButtonRect.x && x <= replayButtonRect.x + replayButtonRect.w &&
+                y >= replayButtonRect.y && y <= replayButtonRect.y + replayButtonRect.h) {
+                gameOver = false;
+                resetGame();
+                return;
+            }
+        }
         if (event.type == SDL_QUIT) {
             running = false;
         } else if (inMenu) {
@@ -278,8 +300,7 @@ void Game::handleEvents() {
             }
         }
     }
-     }
-
+  }
 }
 
 Game::Game(){
@@ -311,6 +332,7 @@ Game::Game(){
     screen = loadTexture("assets/screen.png");
     screen1 = loadTexture("assets/screen1.png");
     screen2 = loadTexture("assets/screen2.png");
+    screen3 = loadTexture("assets/screen3.png");
     winScreen = loadTexture("assets/win.png");
     loseScreen = loadTexture("assets/lose.png");
     groundTexture = loadTexture("assets/ground.png");
@@ -408,7 +430,7 @@ Game::Game(){
     }
 
     if (TTF_Init() == -1) {
-        SDL_Log("Không thể khởi tạo SDL_ttf! Lỗi: %s", TTF_GetError());
+        cerr<<"Failed to initialize SDL_ttf: "<< TTF_GetError() << endl;
         running = false;
     }
 
@@ -423,13 +445,15 @@ void Game::render () {
     if (inMenu) {
         menu->render();
     } else if (gameOver) {
+        menuButtonRect = {250, 400, 300, 75};
+        replayButtonRect = {250, 480, 300, 75};
         if (gameMode == TWO_PLAYER){
             if (player.killCount > player2.killCount) {
                 SDL_RenderCopy(renderer, screen1, NULL, NULL);
             } else if (player.killCount < player2.killCount) {
                 SDL_RenderCopy(renderer, screen2, NULL, NULL);
             } else {
-                SDL_RenderCopy(renderer, screen, NULL, NULL);
+                SDL_RenderCopy(renderer, screen3, NULL, NULL);
             }
         } else {
             if (playerWon) {
@@ -438,6 +462,10 @@ void Game::render () {
                 SDL_RenderCopy(renderer, loseScreen, NULL, NULL);
             }
         }
+        SDL_RenderCopy(renderer, menu->menuButton, NULL, &menuButtonRect);
+        SDL_RenderCopy(renderer, menu->replayButton, NULL, &replayButtonRect);
+        this->menuButtonRect = menuButtonRect;
+        this->replayButtonRect = replayButtonRect;
     } else {
         SDL_SetRenderDrawColor(renderer, 128, 128, 128, 225);
         SDL_RenderClear(renderer);
@@ -469,39 +497,52 @@ void Game::render () {
     SDL_RenderPresent(renderer);
 }
 
-void Game::run () {
-
+void Game::run() {
     SDL_Event e;
 
     playMusic();
 
-    while (inMenu) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                running = false;
-                return;
-            }
-
-            if (menu->handleEvent(e)) {
-                inMenu = false;
-                setGameMode(menu->selectedGameMode);
-            }
-        }
-        menu->render();
-    }
-
     while (running) {
+        while (inMenu) {
+            while (SDL_PollEvent(&e)) {
+                if (e.type == SDL_QUIT) {
+                    running = false;
+                    return;
+                }
+
+                if (menu->handleEvent(e)) {
+                    inMenu = false;
+                    setGameMode(menu->selectedGameMode);
+                }
+            }
+            menu->render();
+        }
         handleEvents();
         update();
         render();
-        if (gameOver) {
-            SDL_Delay(3000);
-            running = false;
-        }
         SDL_Delay(16);
     }
 
     stopMusic();
+}
+void Game::resetGame() {
+    player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
+    player.alive = true;
+    player.killCount = 0;
+
+    if (gameMode == TWO_PLAYER) {
+        player2 = Player(((MAP_WIDTH + 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, player2Textures);
+        player2.alive = true;
+        player2.killCount = 0;
+    }
+
+    enemies.clear();
+    spawnEnemies();
+
+    generateWalls();
+
+    gameOver = false;
+    playerWon = false;
 }
 
 Game::~Game() {

@@ -9,6 +9,8 @@ Menu::Menu(SDL_Renderer* renderer) : renderer(renderer), state(MAIN_MENU) {
     howToPlayButton = IMG_LoadTexture(renderer, "assets/how_to_play.png");
     howToPlayImage = IMG_LoadTexture(renderer, "assets/how_to_play_screen.png");
     backButton = IMG_LoadTexture(renderer, "assets/back_button.png");
+    replayButton = IMG_LoadTexture(renderer, "assets/replay_button.png");
+    menuButton = IMG_LoadTexture(renderer, "assets/menu_button.png");
 
     singlePlayerRect = { 200, 250, 400, 100 };
     twoPlayerRect = { 200, 350, 400, 100 };
@@ -102,4 +104,3 @@ bool Menu::handleEvent(SDL_Event& e) {
 
     return false;
 }
-
