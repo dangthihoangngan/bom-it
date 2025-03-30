@@ -168,7 +168,6 @@ void Game::generateWalls() {
 
 void Game::handleEvents() {
     SDL_Event event;
-
     while (SDL_PollEvent(&event)) {
         if (gameOver && event.type == SDL_MOUSEBUTTONDOWN) {
             int x = event.button.x;
@@ -199,108 +198,87 @@ void Game::handleEvents() {
                 inMenu = false;
             }
             continue;
-        } else if (gameMode == SINGLE_PLAYER) {
-                if (event.type == SDL_KEYDOWN) {
-                switch (event.key.keysym.sym) {
-                    case SDLK_UP:
-                        player.move(0, -5, walls);
-                        player.direction = UP;
-                        player.state = MOVING;
-                        break;
-                    case SDLK_DOWN:
-                        player.move(0, 5, walls);
-                        player.direction = DOWN;
-                        player.state = MOVING;
-                        break;
-                    case SDLK_LEFT:
-                        player.move(-5, 0, walls);
-                        player.direction = LEFT;
-                        player.state = MOVING;
-                        break;
-                    case SDLK_RIGHT:
-                        player.move(5, 0, walls);
-                        player.direction = RIGHT;
-                        player.state = MOVING;
-                        break;
-                    case SDLK_SPACE: player.placeBomb(); break;
-                    }
-                }else if (event.type == SDL_KEYUP) {
-                    player.state = STANDING;
-                }
-        } else if (gameMode == TWO_PLAYER) {
-            if (event.type == SDL_KEYDOWN) {
-            switch (event.key.keysym.sym) {
-                case SDLK_UP:
-                    player.move(0, -5, walls);
-                    player.direction = UP;
-                    player.state = MOVING;
-                    break;
-                case SDLK_DOWN:
-                    player.move(0, 5, walls);
-                    player.direction = DOWN;
-                    player.state = MOVING;
-                    break;
-                case SDLK_LEFT:
-                    player.move(-5, 0, walls);
-                    player.direction = LEFT;
-                    player.state = MOVING;
-                    break;
-                case SDLK_RIGHT:
-                    player.move(5, 0, walls);
-                    player.direction = RIGHT;
-                    player.state = MOVING;
-                    break;
-                case SDLK_RETURN:
-                    player.placeBomb();
-                    break;
-
-                case SDLK_w:
-                    player2.move(0, -5, walls);
-                    player2.direction = UP;
-                    player2.state = MOVING;
-                    break;
-                case SDLK_s:
-                    player2.move(0, 5, walls);
-                    player2.direction = DOWN;
-                    player2.state = MOVING;
-                    break;
-                case SDLK_a:
-                    player2.move(-5, 0, walls);
-                    player2.direction = LEFT;
-                    player2.state = MOVING;
-                    break;
-                case SDLK_d:
-                    player2.move(5, 0, walls);
-                    player2.direction = RIGHT;
-                    player2.state = MOVING;
-                    break;
-                case SDLK_SPACE:
-                    player2.placeBomb();
-                    break;
-            }
-        } else if (event.type == SDL_KEYUP) {
-            if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_DOWN ||
-                event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_RIGHT) {
-                if (!SDL_GetKeyboardState(NULL)[SDL_SCANCODE_UP] &&
-                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_DOWN] &&
-                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LEFT] &&
-                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_RIGHT]) {
-                    player.state = STANDING;
-                }
-            }
-
-            if (event.key.keysym.sym == SDLK_w || event.key.keysym.sym == SDLK_s ||
-                event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_d) {
-                if (!SDL_GetKeyboardState(NULL)[SDL_SCANCODE_W] &&
-                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_S] &&
-                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_A] &&
-                    !SDL_GetKeyboardState(NULL)[SDL_SCANCODE_D]) {
-                    player2.state = STANDING;
-                }
-            }
         }
     }
-  }
+
+    const Uint8* keystates = SDL_GetKeyboardState(NULL);
+
+    if (gameMode == SINGLE_PLAYER) {
+        if (keystates[SDL_SCANCODE_UP]) {
+            player.move(0, -5, walls);
+            player.direction = UP;
+            player.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_DOWN]) {
+            player.move(0, 5, walls);
+            player.direction = DOWN;
+            player.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_LEFT]) {
+            player.move(-5, 0, walls);
+            player.direction = LEFT;
+            player.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_RIGHT]) {
+            player.move(5, 0, walls);
+            player.direction = RIGHT;
+            player.state = MOVING;
+        } else {
+            player.state = STANDING;
+        }
+
+        if (keystates[SDL_SCANCODE_SPACE]) {
+            player.placeBomb();
+        }
+    } else if (gameMode == TWO_PLAYER) {
+        // 🔹 Xử lý Player 1
+        if (keystates[SDL_SCANCODE_UP]) {
+            player.move(0, -5, walls);
+            player.direction = UP;
+            player.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_DOWN]) {
+            player.move(0, 5, walls);
+            player.direction = DOWN;
+            player.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_LEFT]) {
+            player.move(-5, 0, walls);
+            player.direction = LEFT;
+            player.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_RIGHT]) {
+            player.move(5, 0, walls);
+            player.direction = RIGHT;
+            player.state = MOVING;
+        } else {
+            player.state = STANDING;
+        }
+
+        if (keystates[SDL_SCANCODE_RETURN]) {
+            player.placeBomb();
+        }
+
+        // Xử lý Player 2
+        if (keystates[SDL_SCANCODE_W]) {
+            player2.move(0, -5, walls);
+            player2.direction = UP;
+            player2.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_S]) {
+            player2.move(0, 5, walls);
+            player2.direction = DOWN;
+            player2.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_A]) {
+            player2.move(-5, 0, walls);
+            player2.direction = LEFT;
+            player2.state = MOVING;
+        } else if (keystates[SDL_SCANCODE_D]) {
+            player2.move(5, 0, walls);
+            player2.direction = RIGHT;
+            player2.state = MOVING;
+        } else {
+            player2.state = STANDING;
+        }
+
+        if (keystates[SDL_SCANCODE_SPACE]) {
+            player2.placeBomb();
+        }
+    }
+
 }
 
 Game::Game(){
