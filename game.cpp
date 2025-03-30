@@ -329,7 +329,6 @@ Game::Game(){
     Player::loadBombTextures(renderer);
     bulletTexture = loadTexture("assets/bullet.png");
 
-    screen = loadTexture("assets/screen.png");
     screen1 = loadTexture("assets/screen1.png");
     screen2 = loadTexture("assets/screen2.png");
     screen3 = loadTexture("assets/screen3.png");
@@ -467,7 +466,7 @@ void Game::render () {
         this->menuButtonRect = menuButtonRect;
         this->replayButtonRect = replayButtonRect;
     } else {
-        SDL_SetRenderDrawColor(renderer, 128, 128, 128, 225);
+        SDL_SetRenderDrawColor(renderer, 205, 133, 63, 255);
         SDL_RenderClear(renderer);
 
         renderGround(renderer, walls, groundTexture);

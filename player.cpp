@@ -60,8 +60,9 @@ void Player::updateBombs(vector<Wall>& walls, vector<Enemy*>& enemies, bool& gam
 }
 
 void Player::move(int dx, int dy, const vector<Wall>& walls) {
-    int newX = x + dx;
-    int newY = y + dy;
+    int speed = 2;
+    int newX = x + dx * speed;
+    int newY = y + dy * speed;
     this->dirX = dx;
     this->dirY = dy;
 

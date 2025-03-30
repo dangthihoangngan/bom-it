@@ -25,7 +25,7 @@ void renderMap(SDL_Renderer* renderer, const vector<Wall>& walls) {
 }
 
 void renderGround(SDL_Renderer* renderer, const vector<Wall>& walls, SDL_Texture* groundTexture) {
-    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+    SDL_SetRenderDrawColor(renderer, 205, 133, 63, 255);
     for (int i = 0; i < MAP_HEIGHT; ++i) {
         for (int j = 0; j < MAP_WIDTH; ++j) {
             SDL_Rect tile = { j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE };
