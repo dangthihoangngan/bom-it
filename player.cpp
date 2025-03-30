@@ -8,7 +8,7 @@ using namespace std;
 Player::Player () {
     x = 0;
     y = 0;
-    rect = {x, y, TILE_SIZE - 5, TILE_SIZE - 5};
+    rect = {x, y, TILE_SIZE, TILE_SIZE};
     dirX = 0;
     dirY = -1;
 }
@@ -60,9 +60,8 @@ void Player::updateBombs(vector<Wall>& walls, vector<Enemy*>& enemies, bool& gam
 }
 
 void Player::move(int dx, int dy, const vector<Wall>& walls) {
-    int speed = 2;
-    int newX = x + dx * speed;
-    int newY = y + dy * speed;
+    int newX = x + dx;
+    int newY = y + dy;
     this->dirX = dx;
     this->dirY = dy;
 

@@ -58,6 +58,9 @@ public:
     SDL_Rect menuButtonRect;
     SDL_Rect replayButtonRect;
 
+    SDL_Scancode playerKey = SDL_SCANCODE_UNKNOWN;
+    SDL_Scancode player2Key = SDL_SCANCODE_UNKNOWN;
+
     void playMusic();
     void stopMusic();
 
