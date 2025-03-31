@@ -9,8 +9,14 @@ SDL_Texture* Bomb::bombTexture = nullptr;
 SDL_Texture* Bomb::explosionTextures[4] = {nullptr, nullptr, nullptr, nullptr};
 
 Bomb::Bomb(int startX, int startY) {
-    x = startX;
-    y = startY;
+    x = (startX / TILE_SIZE) * TILE_SIZE;
+
+    // Kiểm tra nếu startY không nằm chính xác trên một ô lưới
+    if (startY % TILE_SIZE != 0) {
+        y = (startY / TILE_SIZE) * TILE_SIZE + TILE_SIZE; // Đặt xuống ô dưới
+    } else {
+        y = (startY / TILE_SIZE) * TILE_SIZE; // Giữ nguyên nếu đã khớp ô
+    }
     rect = {x, y, TILE_SIZE, TILE_SIZE};
     placedTime = SDL_GetTicks();
     explosionEndTime = placedTime + EXPLOSION_TIME + EXPLOSION_DURATION;

@@ -72,16 +72,8 @@ void Player::move(int dx, int dy, const vector<Wall>& walls) {
         }
     }
 
-    for (const auto& bomb : bombs) {
-        if (SDL_HasIntersection(&newRect, &bomb.rect)) {
-            if (SDL_GetTicks() - bomb.placedTime > 1000) {
-                return;
-            }
-        }
-    }
-
-    if (newX >= TILE_SIZE && newX <= SCREEN_WIDTH - TILE_SIZE * 2 &&
-        newY >= TILE_SIZE && newY <= SCREEN_HEIGHT - TILE_SIZE * 2) {
+    if (newX >= TILE_SIZE && newX <= SCREEN_WIDTH - TILE_SIZE &&
+        newY >= TILE_SIZE && newY <= SCREEN_HEIGHT - TILE_SIZE) {
         x = newX;
         y = newY;
         rect.x = x;
