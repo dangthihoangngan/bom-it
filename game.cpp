@@ -483,6 +483,7 @@ void Game::run() {
 
     stopMusic();
 }
+
 void Game::resetGame() {
     player = Player(((MAP_WIDTH - 1) / 2) * TILE_SIZE, (MAP_HEIGHT - 2) * TILE_SIZE, playerTextures);
     player.alive = true;

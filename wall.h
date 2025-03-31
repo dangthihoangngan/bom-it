@@ -11,8 +11,8 @@ class Wall {
 public:
     int x, y;
     int type;
-    SDL_Rect rect;
     bool active;
+    SDL_Rect rect;
     SDL_Texture* texture;
 
     Wall (int startX, int startY, int wallType, SDL_Texture* tex);

@@ -10,8 +10,8 @@ class Bullet {
 public:
     int x, y;
     int dx, dy;
-    SDL_Rect rect;
     bool active;
+    SDL_Rect rect;
     SDL_Texture* texture;
 
     Bullet(int startX, int startY, int dirX, int dirY, SDL_Texture* bulletTexture);
