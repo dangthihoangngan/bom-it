@@ -236,6 +236,7 @@ void Game::handleEvents() {
                 else if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_DOWN]){ dy1 = 5; player.direction = DOWN;}
                 else if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LEFT]){ dx1 = -5; player.direction = LEFT;}
                 else if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_RIGHT]){ dx1 = 5; player.direction = RIGHT;}
+                else if (SDL_GetKeyboardState (NULL) [SDL_SCANCODE_RETURN]) player.placeBomb();
 
                 if (dx1 != 0 || dy1 != 0) {
                     player.move(dx1, dy1, walls);
@@ -249,6 +250,7 @@ void Game::handleEvents() {
                 else if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_S]){ dy2 = 5; player2.direction = DOWN;}
                 else if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_A]){ dx2 = -5; player2.direction = LEFT;}
                 else if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_D]){ dx2 = 5; player2.direction = RIGHT;}
+                else if (SDL_GetKeyboardState (NULL) [SDL_SCANCODE_SPACE]) player2.placeBomb();
 
                 if (dx2 != 0 || dy2 != 0) {
                     player2.move(dx2, dy2, walls);
